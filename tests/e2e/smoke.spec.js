@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { mockApi, isExpectedAnonymousProbe, USERS } from './helpers/mockApi';
 
 function attachConsoleAndAssetListeners(page, allowedWarnings = []) {
   const errors = [];
@@ -6,7 +7,8 @@ function attachConsoleAndAssetListeners(page, allowedWarnings = []) {
   page.on('console', (msg) => {
     if (msg.type() === 'error') {
       const text = msg.text();
-      const isAllowed = allowedWarnings.some((w) => text.includes(w));
+      // Asking who is signed in while nobody is gives a normal 401; the browser logs it as a resource error.
+      const isAllowed = text.includes('status of 401') || allowedWarnings.some((w) => text.includes(w));
       if (!isAllowed) {
         errors.push(`Console error: ${text}`);
       }
@@ -20,7 +22,7 @@ function attachConsoleAndAssetListeners(page, allowedWarnings = []) {
   page.on('response', (response) => {
     const url = response.url();
     // Only fail on local 4xx/5xx responses (ignore external unsplash fallback network quirks if any)
-    if (url.includes('localhost:5173') && response.status() >= 400) {
+    if (url.includes('localhost:5173') && response.status() >= 400 && !isExpectedAnonymousProbe(response)) {
       errors.push(`Failed local asset (${response.status()}): ${url}`);
     }
   });
@@ -29,6 +31,12 @@ function attachConsoleAndAssetListeners(page, allowedWarnings = []) {
 }
 
 test.describe('Phase 1 Smoke & Route Tests', () => {
+  // The website asks the backend who is signed in on every page load; answer it without a real backend.
+  let api;
+  test.beforeEach(async ({ page }) => {
+    api = await mockApi(page);
+  });
+
   const routesToTest = [
     { path: '/', titleExpected: 'Salvex' },
     { path: '/vehicles', headingText: 'Marketplace' },
@@ -88,38 +96,21 @@ test.describe('Phase 1 Smoke & Route Tests', () => {
     expect(errors).toEqual([]);
   });
 
-  test('Bidder persona cannot open /admin', async ({ page }) => {
+  test('A signed-in bidder cannot open /admin and is sent to their own dashboard', async ({ page }) => {
     const errors = attachConsoleAndAssetListeners(page);
-    await page.goto('/login');
-    // Click Quick Persona Demo Login for Bidder
-    const bidderBtn = page.locator('button:has-text("Demo Bidder")');
-    if (await bidderBtn.isVisible()) {
-      await bidderBtn.click();
-    } else {
-      await page.fill('input[type="email"], input[name="identifier"]', 'demo.bidder@example.com');
-      await page.click('button[type="submit"]');
-    }
-    await page.waitForURL('**/dashboard');
-
-    // Attempt navigating directly to /admin
+    api.signIn(USERS.bidder);
     await page.goto('/admin');
-    // Role 'bidder' is not allowed in /admin, should redirect back to /dashboard
+    // The role comes from the backend (GET /api/auth/me); a bidder is not allowed in /admin
     await expect(page).toHaveURL(/.*\/dashboard/);
     expect(errors).toEqual([]);
   });
 
-  test('Admin persona can open /admin and stays after reload', async ({ page }) => {
+  test('A signed-in admin can open /admin and stays signed in after a reload', async ({ page }) => {
     const errors = attachConsoleAndAssetListeners(page);
-    await page.goto('/login');
-    // Click Super Admin persona
-    const adminBtn = page.locator('button:has-text("Super Admin")');
-    if (await adminBtn.isVisible()) {
-      await adminBtn.click();
-    }
-    await page.waitForURL('**/admin');
+    api.signIn(USERS.admin);
+    await page.goto('/admin');
     await expect(page.locator('text=SALVEX COMMAND CENTER')).toBeVisible();
 
-    // Reload page
     await page.reload();
     await expect(page).toHaveURL(/.*\/admin/);
     await expect(page.locator('text=SALVEX COMMAND CENTER')).toBeVisible();

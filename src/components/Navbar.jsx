@@ -14,6 +14,9 @@ import {
   PlusCircle
 } from 'lucide-react';
 import './Navbar.css';
+import { useAuth } from '../auth/useAuth';
+import { homeForRole } from '../auth/roles';
+import { DEMO_PERSONAS_ENABLED } from '../auth/demo';
 
 export default function Navbar({
   activeSection = 'home',
@@ -23,13 +26,18 @@ export default function Navbar({
   onOpenSearchModal,
   onSearchSubmitQuery,
   savedCount = 0,
-  onOpenSavedModal
+  onOpenSavedModal,
+  onOpenRegister,
+  onLogout
 }) {
+  const { status: authStatus, user: authUser, demoRole } = useAuth();
+  const accountHome = homeForRole(authUser?.role ?? demoRole);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCurrency, setSelectedCurrency] = useState('INR ₹');
+  const [currencyDropdownOpen, setCurrencyDropdownOpen] = useState(false); // was deleted by mistake in 48651a5; the markup below still uses it
   const [liveAuctionsDropdownOpen, setLiveAuctionsDropdownOpen] = useState(false);
   const [upcomingAuctionsDropdownOpen, setUpcomingAuctionsDropdownOpen] = useState(false);
   const [servicesDropdownOpen, setServicesDropdownOpen] = useState(false);
@@ -177,7 +185,7 @@ export default function Navbar({
             {/* Mobile Announcement Banner (425px - 320px) matching reference */}
             <div
               className="announcement-mobile-banner"
-              onClick={onOpenBidderModal}
+              onClick={authUser ? () => onNavigate && onNavigate(accountHome) : (onOpenRegister || onOpenBidderModal)}
               role="button"
               tabIndex={0}
             >
@@ -295,27 +303,50 @@ export default function Navbar({
                 )}
               </button>
 
-              {/* User Login Icon */}
-              <button
-                type="button"
-                className="navbar-action-icon-btn"
-                onClick={onOpenBidderModal}
-                title="Account Login"
-                aria-label="Account Login"
-              >
-                <User size={20} strokeWidth={1.8} />
-              </button>
+              {authStatus === 'loading' ? null : authUser ? (
+                /* Signed in: who you are, plus a real sign-out */
+                <div className="navbar-user-chip" id="nav-user-chip">
+                  <button
+                    type="button"
+                    className="navbar-action-icon-btn"
+                    onClick={() => onNavigate && onNavigate(accountHome)}
+                    title="My account"
+                    aria-label="My account"
+                  >
+                    <User size={20} strokeWidth={1.8} />
+                  </button>
+                  <span title={authUser.email}>Hi, {authUser.name.split(' ')[0]}</span>
+                  <button type="button" className="btn-signout" onClick={onLogout} id="nav-signout-btn">
+                    Sign out
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {DEMO_PERSONAS_ENABLED && demoRole && <span className="navbar-demo-badge">Demo screens, not signed in</span>}
 
-              {/* Register as Bidder Red Button */}
-              <button
-                type="button"
-                className="btn-register-red"
-                onClick={onOpenBidderModal}
-                id="nav-register-cta"
-              >
-                <span>Register as Bidder</span>
-                <ArrowRight size={15} strokeWidth={2.2} />
-              </button>
+                  {/* User Login Icon */}
+                  <button
+                    type="button"
+                    className="navbar-action-icon-btn"
+                    onClick={onOpenBidderModal}
+                    title="Account Login"
+                    aria-label="Account Login"
+                  >
+                    <User size={20} strokeWidth={1.8} />
+                  </button>
+
+                  {/* Register as Bidder Red Button */}
+                  <button
+                    type="button"
+                    className="btn-register-red"
+                    onClick={onOpenRegister || onOpenBidderModal}
+                    id="nav-register-cta"
+                  >
+                    <span>Register as Bidder</span>
+                    <ArrowRight size={15} strokeWidth={2.2} />
+                  </button>
+                </>
+              )}
             </div>
 
             {/* MOBILE ONLY (425px - 320px): Right Controls: Search Box Button + Red User Box Button */}
@@ -336,9 +367,9 @@ export default function Navbar({
               <button
                 type="button"
                 className="mobile-user-box-btn"
-                onClick={onOpenBidderModal}
-                aria-label="Account Login"
-                title="Account Login"
+                onClick={authUser ? () => onNavigate && onNavigate(accountHome) : onOpenBidderModal}
+                aria-label={authUser ? 'My account' : 'Account Login'}
+                title={authUser ? 'My account' : 'Account Login'}
                 id="mobile-user-btn"
               >
                 <User size={19} strokeWidth={2.2} />
@@ -872,29 +903,60 @@ export default function Navbar({
               <span>List Your Vehicle</span>
             </button>
 
-            <button
-              type="button"
-              className="btn-drawer-outline"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                if (onOpenBidderModal) onOpenBidderModal();
-              }}
-            >
-              <User size={15} />
-              <span>Login</span>
-            </button>
+            {authUser ? (
+              <>
+                <button
+                  type="button"
+                  className="btn-drawer-outline"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    if (onNavigate) onNavigate(accountHome);
+                  }}
+                >
+                  <User size={15} />
+                  <span>My account ({authUser.name.split(' ')[0]})</span>
+                </button>
 
-            <button
-              type="button"
-              className="btn-register-red w-full"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                if (onOpenBidderModal) onOpenBidderModal();
-              }}
-            >
-              <span>Register as Bidder</span>
-              <ArrowRight size={15} />
-            </button>
+                <button
+                  type="button"
+                  className="btn-register-red w-full"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    if (onLogout) onLogout();
+                  }}
+                >
+                  <span>Sign out</span>
+                  <ArrowRight size={15} />
+                </button>
+              </>
+            ) : authStatus === 'loading' ? null : (
+              <>
+                <button
+                  type="button"
+                  className="btn-drawer-outline"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    if (onOpenBidderModal) onOpenBidderModal();
+                  }}
+                >
+                  <User size={15} />
+                  <span>Login</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="btn-register-red w-full"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    if (onOpenRegister) onOpenRegister();
+                    else if (onOpenBidderModal) onOpenBidderModal();
+                  }}
+                >
+                  <span>Register as Bidder</span>
+                  <ArrowRight size={15} />
+                </button>
+              </>
+            )}
           </div>
         </div>
       </aside>

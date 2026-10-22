@@ -1,5 +1,5 @@
 import React, { useState, useLayoutEffect } from 'react';
-import { Routes, Route, Navigate, useNavigate, useLocation, Link } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation, Link } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import SearchPanel from './components/SearchPanel';
@@ -31,6 +31,11 @@ import DocumentationServicePage from './components/services/DocumentationService
 
 // Authentication & Seller Onboarding Pages
 import LoginPage from './components/LoginPage';
+import RegisterPage from './components/RegisterPage';
+import VerifyEmailPage from './components/VerifyEmailPage';
+import ForgotPasswordPage from './components/ForgotPasswordPage';
+import ResetPasswordPage from './components/ResetPasswordPage';
+import { useAuth } from './auth/useAuth';
 import ListVehiclePage from './components/ListVehiclePage';
 
 // Operational & User Workflow Portals
@@ -87,7 +92,7 @@ export const ROUTE_MAP = {
   'auction-policy': '/legal/auction',
   legal: '/legal',
   login: '/login',
-  register: '/login',
+  register: '/register',
   'list-your-vehicle': '/sell',
   dashboard: '/dashboard',
   payment: '/payment/:lotId',
@@ -99,6 +104,7 @@ export const ROUTE_MAP = {
 export default function App() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { logout } = useAuth();
 
   const [showPreloader, setShowPreloader] = useState(true);
   const [liveVehicles, setLiveVehicles] = useState(liveVehiclesData);
@@ -151,9 +157,23 @@ export default function App() {
   // Toast feedback
   const [toastMessage, setToastMessage] = useState(null);
 
-  const showToast = (msg) => {
+  const showToast = (msg, ms = 3500) => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3500);
+    setTimeout(() => setToastMessage(null), ms);
+  };
+
+  // Ends the session on the server and clears this device. If the server could not confirm, say so.
+  const handleLogout = async () => {
+    const { serverRevoked } = await logout();
+    if (serverRevoked) {
+      showToast('You have been signed out.');
+    } else {
+      showToast(
+        'You are signed out on this device, but we could not reach the server to end the session. On a shared computer, sign in and out again when you are back online.',
+        9000
+      );
+    }
+    navigate('/');
   };
 
   // Central Router Dispatcher maintaining identical callback signature
@@ -251,6 +271,8 @@ export default function App() {
         }}
         savedCount={savedIds.length}
         onOpenSavedModal={() => setIsSavedOpen(true)}
+        onOpenRegister={() => navigate('/register')}
+        onLogout={handleLogout}
       />
 
       {/* 02 ROUTING VIEW CONTAINER */}
@@ -457,20 +479,15 @@ export default function App() {
           <Route
             path="/login"
             element={
-              <LoginPage
-                onLoginSuccess={(role) => {
-                  if (role === 'admin') navigate('/admin');
-                  else if (role === 'seller') navigate('/seller/dashboard');
-                  else navigate('/dashboard');
-                }}
-                onNavigateRegister={() => navigate('/login')}
-                onShowToast={showToast}
-              />
+              <LoginPage onShowToast={showToast} />
             }
           />
 
-          {/* ROUTE 18: REGISTER -> REDIRECT TO /login */}
-          <Route path="/register" element={<Navigate to="/login" replace />} />
+          {/* ROUTE 18: ACCOUNT CREATION, EMAIL VERIFICATION AND PASSWORD RECOVERY */}
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
 
           {/* ROUTE 19: LIST YOUR VEHICLE (/sell) */}
           <Route

@@ -1,29 +1,38 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../auth/useAuth';
+import { homeForRole } from '../auth/roles';
 
 /**
  * ProtectedRoute
- * TEMPORARY: fake auth for prototype, replace with real backend auth
- * Checks sessionStorage for { isAuthenticated, role } to keep user logged in across page refreshes.
+ * Waits for the backend to say who is signed in (GET /api/auth/me) BEFORE deciding anything, so
+ * there is no redirect flash and no content is shown to someone who is not signed in.
+ *
+ * This guard only decides what the browser SHOWS. Real access control must be (and, as business
+ * endpoints are added, will be) enforced by the backend on every request.
  */
 export default function ProtectedRoute({ children, allowedRoles }) {
-  const authDataRaw = typeof window !== 'undefined' ? sessionStorage.getItem('salvex_demo_auth') : null;
-  let auth = null;
-  try {
-    auth = authDataRaw ? JSON.parse(authDataRaw) : null;
-  } catch {
-    auth = null;
+  const { status, user, demoRole } = useAuth();
+  const location = useLocation();
+
+  if (status === 'loading') {
+    return (
+      <div className="auth-loading" role="status" aria-live="polite">
+        Checking your session…
+      </div>
+    );
   }
 
-  if (!auth?.isAuthenticated) {
-    return <Navigate to="/login" replace />;
+  // `demoRole` is always null unless a developer explicitly enabled demo screens (see auth/demo.js).
+  const role = user?.role ?? demoRole;
+
+  if (!role) {
+    return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  if (allowedRoles && allowedRoles.length > 0 && !allowedRoles.includes(auth.role)) {
-    // If authenticated under a different persona, redirect to corresponding dashboard
-    if (auth.role === 'admin') return <Navigate to="/admin" replace />;
-    if (auth.role === 'seller') return <Navigate to="/seller/dashboard" replace />;
-    return <Navigate to="/dashboard" replace />;
+  if (allowedRoles && allowedRoles.length > 0 && !allowedRoles.includes(role)) {
+    // Signed in, but this area is for someone else: send them to their own home.
+    return <Navigate to={homeForRole(role)} replace />;
   }
 
   return children;

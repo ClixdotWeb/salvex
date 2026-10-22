@@ -140,3 +140,25 @@ Quick check: with both running, open <http://localhost:5173/api/health>. You sho
 JSON as <http://127.0.0.1:8000/api/health>.
 
 This proxy is for development only. A deployed website needs its own routing to a hosted backend.
+
+---
+
+## 10. Authentication (sign-up, sign-in, sessions)
+
+Full description, security controls and the production checklist: [`../docs/AUTHENTICATION.md`](../docs/AUTHENTICATION.md).
+
+**One-time step for your LOCAL development database** (adds the `auth_sessions` table; changes nothing else):
+
+```powershell
+alembic upgrade head
+```
+
+**Development email:** no real email is sent. Codes are written to `.dev_outbox/outbox.jsonl` (ignored by Git) and never to the log:
+
+```powershell
+python -m app.cli dev-last-code you@example.com
+```
+
+**Administrators** can only be created on the server with `python -m app.cli create-admin` (see the documentation); there is no API for it.
+
+**The API now refuses to start with an unsafe configuration** unless `APP_ENV=development` (or `test`) is set. If `APP_ENV` is missing it assumes production.

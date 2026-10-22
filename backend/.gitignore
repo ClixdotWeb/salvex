@@ -37,3 +37,6 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+
+# Developer email outbox (contains one-time codes; development only)
+.dev_outbox/

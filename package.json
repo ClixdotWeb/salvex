@@ -8,6 +8,7 @@
     "build": "vite build",
     "lint": "oxlint",
     "test:e2e": "playwright test",
+    "check:no-demo": "node scripts/check-no-demo-in-build.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

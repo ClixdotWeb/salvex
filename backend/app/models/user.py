@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime, timezone
+from typing import Optional
 from sqlalchemy import String, DateTime, ForeignKey, Table, Column, Enum as SQLEnum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -96,6 +97,11 @@ class User(Base):
         back_populates="user",
         cascade="all, delete-orphan"
     )
+    sessions: Mapped[list["AuthSession"]] = relationship(
+        "AuthSession",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
 
     def __repr__(self) -> str:
         return f"<User {self.email} ({self.role})>"
@@ -136,3 +142,43 @@ class AuthToken(Base):
     def __repr__(self) -> str:
         return f"<AuthToken {self.purpose} for user={self.user_id} (used={self.is_used})>"
 
+
+class AuthSession(Base):
+    """
+    One signed-in browser/device. The login token carries this row's id ("sid"); a token is only
+    accepted while its session exists, is not revoked, has not expired and has not been idle too
+    long. Logging out, resetting a password or deactivating an account revokes sessions here, so
+    stolen tokens stop working immediately instead of living until they expire.
+    """
+    __tablename__ = "auth_sessions"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        index=True,
+        nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False
+    )
+    last_seen_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False
+    )
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True, nullable=False)
+    revoked_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    revoke_reason: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
+    user_agent: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+
+    user: Mapped["User"] = relationship("User", back_populates="sessions")
+
+    def __repr__(self) -> str:
+        return f"<AuthSession {self.id} user={self.user_id} revoked={self.revoked_at is not None}>"
