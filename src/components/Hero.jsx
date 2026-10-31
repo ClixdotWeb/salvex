@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, Play } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 const HERO_SLIDES = [
   {
@@ -16,7 +16,7 @@ const HERO_SLIDES = [
   }
 ];
 
-export default function Hero({ onSearchClick, onLiveAuctionsClick }) {
+export default function Hero({ onLiveAuctionsClick }) {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
@@ -105,18 +105,6 @@ export default function Hero({ onSearchClick, onLiveAuctionsClick }) {
               >
                 <span>Browse Live Auctions</span>
                 <ArrowRight size={17} className="btn-arrow" />
-              </button>
-
-              <button
-                type="button"
-                className="btn-hero-video"
-                onClick={onSearchClick}
-                id="hero-watch-video-btn"
-              >
-                <div className="hero-video-icon-circle">
-                  <Play size={12} fill="currentColor" className="hero-video-play-icon" />
-                </div>
-                <span>Watch Video</span>
               </button>
             </div>
           </div>

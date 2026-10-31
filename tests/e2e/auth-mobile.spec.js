@@ -16,14 +16,14 @@ test.describe('signed-in state in the mobile menu', () => {
     await page.click('#mobile-nav-hamburger');
     const drawer = page.getByLabel('Mobile Navigation');
     await expect(drawer.getByRole('button', { name: /My account \(Sunil\)/ })).toBeVisible();
-    await expect(drawer.getByRole('button', { name: 'Register as Bidder' })).toHaveCount(0);
+    await expect(drawer.getByRole('button', { name: 'Register', exact: true })).toHaveCount(0);
 
     await drawer.getByRole('button', { name: 'Sign out' }).click();
     await expect(page.locator('.salvex-toast-notification')).toContainText('You have been signed out.');
     expect(api.callsTo('POST', '/api/auth/logout')[0].headers['x-csrf-token']).toBe(CSRF);
 
     await page.click('#mobile-nav-hamburger');
-    await expect(drawer.getByRole('button', { name: 'Register as Bidder' })).toBeVisible();
+    await expect(drawer.getByRole('button', { name: 'Register', exact: true })).toBeVisible();
     await expect(drawer.getByRole('button', { name: /My account/ })).toHaveCount(0);
   });
 
@@ -40,7 +40,7 @@ test.describe('signed-in state in the mobile menu', () => {
     await page.click('#mobile-nav-hamburger');
     const drawer = page.getByLabel('Mobile Navigation');
     await expect(drawer.getByRole('button', { name: 'Login', exact: true })).toBeVisible();
-    await drawer.getByRole('button', { name: 'Register as Bidder' }).click();
+    await drawer.getByRole('button', { name: 'Register', exact: true }).click();
     await expect(page).toHaveURL(/\/register$/);
   });
 });

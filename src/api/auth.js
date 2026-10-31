@@ -12,8 +12,18 @@ export function register({ name, email, password, role, mobile, organization }) 
   });
 }
 
-export function verifyEmail(email, otp) {
-  return apiRequest('/api/auth/verify-email', { method: 'POST', body: { email, otp }, ...PUBLIC });
+/** A correct code also signs the user in (HttpOnly cookie). Resolves with the signed-in user. */
+export async function verifyEmail(email, otp) {
+  const data = await apiRequest('/api/auth/verify-email', { method: 'POST', body: { email, otp }, ...PUBLIC });
+  setCsrfToken(data.csrf_token); // memory only, exactly as after login
+  return data.user;
+}
+
+/** Sign-up with mobile verification on: the SMS code creates the account and signs the user in. */
+export async function verifySignupMobile(email, otp) {
+  const data = await apiRequest('/api/auth/verify-mobile', { method: 'POST', body: { email, otp }, ...PUBLIC });
+  setCsrfToken(data.csrf_token);
+  return data.user;
 }
 
 export function resendCode(email, purpose = 'email_verification') {
@@ -52,4 +62,24 @@ export function resetPassword(email, otp, newPassword) {
     body: { email, otp, new_password: newPassword },
     ...PUBLIC,
   });
+}
+
+/** Signed in: send an SMS code to the current mobile number, or to a new number (which replaces it). */
+export function sendMobileCode(mobile) {
+  return apiRequest('/api/auth/mobile/send-code', { method: 'POST', body: mobile ? { mobile } : {} });
+}
+
+/** Signed in: confirm the mobile number with the SMS code. Resolves with the updated user. */
+export function verifyMobile(otp) {
+  return apiRequest('/api/auth/mobile/verify', { method: 'POST', body: { otp } });
+}
+
+/** Signed in: email a code to confirm the email address (buyers who signed up with the SMS code). */
+export function sendEmailCode() {
+  return apiRequest('/api/auth/email/send-code', { method: 'POST' });
+}
+
+/** Signed in: confirm the email address with the emailed code. Resolves with the updated user. */
+export function verifyEmailCode(otp) {
+  return apiRequest('/api/auth/email/verify', { method: 'POST', body: { otp } });
 }

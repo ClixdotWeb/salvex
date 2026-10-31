@@ -22,11 +22,11 @@ class StrictRequest(BaseModel):
 
 
 class UserRegisterRequest(StrictRequest):
-    name: str = Field(..., min_length=2, max_length=100, description="Full name or company name")
+    name: str = Field(..., min_length=2, max_length=100, description="Full name")
     email: EmailStr = Field(..., description="Unique user email address")
     password: str = Field(..., min_length=MIN_LENGTH, max_length=MAX_LENGTH, description="Account password")
     role: Literal["bidder", "seller"] = Field(default="bidder", description="Account type (admins cannot self-register)")
-    mobile: Optional[str] = Field(default="", max_length=50, description="Contact mobile number")
+    mobile: str = Field(..., max_length=50, description="Contact mobile number (our team calls buyers)")
     organization: Optional[str] = Field(default="", max_length=255, description="Registered organization")
 
     @field_validator("name")
@@ -44,7 +44,7 @@ class UserRegisterRequest(StrictRequest):
     def validate_mobile(cls, v: Optional[str]) -> str:
         clean = (v or "").strip()
         if not clean:
-            return ""
+            raise ValueError("Enter your mobile number.")
         if not _PHONE.match(_PHONE_FORMATTING.sub("", clean)):
             raise ValueError("Enter a valid mobile number (7 to 15 digits, optionally starting with +).")
         return clean
@@ -74,9 +74,36 @@ class VerifyEmailRequest(StrictRequest):
     otp: str = Field(..., pattern=r"^[0-9]{6}$", description="6-digit verification code")
 
 
+class VerifySignupMobileRequest(StrictRequest):
+    email: EmailStr = Field(..., description="The email address used to register")
+    otp: str = Field(..., pattern=r"^[0-9]{6}$", description="6-digit code sent by SMS")
+
+
+class MobileCodeRequest(StrictRequest):
+    mobile: Optional[str] = Field(default=None, max_length=50,
+                                  description="A new number to use instead of the current one (optional)")
+
+    @field_validator("mobile")
+    @classmethod
+    def validate_mobile(cls, v: Optional[str]) -> Optional[str]:
+        if v is None or not v.strip():
+            return None
+        clean = v.strip()
+        if not _PHONE.match(_PHONE_FORMATTING.sub("", clean)):
+            raise ValueError("Enter a valid mobile number (7 to 15 digits, optionally starting with +).")
+        return clean
+
+
+class VerifyCodeRequest(StrictRequest):
+    otp: str = Field(..., pattern=r"^[0-9]{6}$", description="6-digit code (SMS or email)")
+
+
+VerifyMobileRequest = VerifyCodeRequest  # earlier name
+
+
 class ResendOtpRequest(StrictRequest):
     email: EmailStr = Field(..., description="User email address")
-    purpose: Literal["email_verification", "password_reset"] = Field(
+    purpose: Literal["email_verification", "password_reset", "mobile_verification"] = Field(
         default="email_verification",
         description="Purpose of the code"
     )
@@ -99,6 +126,7 @@ class ResetPasswordRequest(StrictRequest):
 
 class UserResponse(BaseModel):
     id: uuid.UUID
+    buyer_id: str = ""
     name: str
     email: str
     role: str
@@ -106,6 +134,7 @@ class UserResponse(BaseModel):
     organization: str
     kyc_status: str
     is_email_verified: bool
+    is_mobile_verified: bool = False
     is_active: bool
 
     model_config = ConfigDict(from_attributes=True)
@@ -129,3 +158,12 @@ class AuthTokenResponse(BaseModel):
 class GenericMessageResponse(BaseModel):
     message: str
     success: bool = True
+
+
+class VerifyEmailResponse(GenericMessageResponse):
+    """A successful verification also signs the user in (same session, cookie and CSRF rules as login)."""
+    user: UserResponse
+    csrf_token: str
+    # Only for non-browser clients that ask with "X-Auth-Mode: bearer"; browsers get the HttpOnly cookie.
+    access_token: Optional[str] = None
+    token_type: str = "bearer"

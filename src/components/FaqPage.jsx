@@ -7,7 +7,7 @@ import {
   MessageCircle,
   ArrowRight
 } from 'lucide-react';
-import { faqData } from '../data/mockVehicles';
+import { faqData } from '../data/siteContent';
 import './FaqPage.css';
 
 export default function FaqPage({ onContactClick, onRegisterClick }) {
@@ -50,7 +50,7 @@ export default function FaqPage({ onContactClick, onRegisterClick }) {
               <Search size={18} className="search-icon" />
               <input
                 type="text"
-                placeholder="Search questions (e.g., cancel bid, payment deadline, required KYC, lifting)..."
+                placeholder="Search questions (e.g., cancel bid, after winning, required KYC, lifting)..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="faq-search-input"

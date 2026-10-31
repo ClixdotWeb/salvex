@@ -16,7 +16,7 @@ test.describe('email verification', () => {
     await page.fill('#reg-name', 'Asha Bidder');
     await page.fill('#reg-email', USERS.bidder.email);
     await page.fill('#reg-password', 'CorrectHorse!42');
-    await page.fill('#reg-confirm', 'CorrectHorse!42');
+    await page.fill('#reg-mobile', '+91 98765 43210');
     await submit(page).click();
     await expect(page).toHaveURL(/\/verify-email$/);
   }
@@ -32,7 +32,7 @@ test.describe('email verification', () => {
     await expect(page.locator('#verify-code')).toHaveAttribute('autocomplete', 'one-time-code');
   });
 
-  test('a wrong code shows the attempts left and clears the box; the right code leads to sign-in', async ({ page }) => {
+  test('a wrong code shows the attempts left and clears the box; the right code signs the user in', async ({ page }) => {
     await arriveFromRegistration(page);
     await page.fill('#verify-code', '000000');
     await submit(page).click();
@@ -41,9 +41,9 @@ test.describe('email verification', () => {
 
     await page.fill('#verify-code', '123456');
     await submit(page).click();
-    await expect(page).toHaveURL(/\/login$/);
-    await expect(page.getByText('Your email address is verified. You can now sign in.')).toBeVisible();
-    await expect(page.locator('#login-email')).toHaveValue(USERS.bidder.email);
+    await expect(page).toHaveURL(/\/dashboard$/);                 // straight in, no second sign-in
+    await page.reload();                                          // the session survives a reload (cookie)
+    await expect(page).toHaveURL(/\/dashboard$/);
   });
 
   test('the code and the email never appear in the address bar', async ({ page }) => {
@@ -52,7 +52,7 @@ test.describe('email verification', () => {
     expect(page.url()).not.toContain('123456');
     expect(page.url()).not.toContain('@');
     await submit(page).click();
-    await expect(page).toHaveURL(/\/login$/);
+    await expect(page).toHaveURL(/\/dashboard$/);
     expect(page.url()).not.toContain('@');
     const [call] = api.callsTo('POST', '/api/auth/verify-email');
     expect(call.body).toEqual({ email: USERS.bidder.email, otp: '123456' });

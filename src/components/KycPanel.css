@@ -1,0 +1,239 @@
+/* KYC panel (real data). Scoped to .kyc-panel. */
+.kyc-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.kyc-loading {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  padding: 24px;
+  color: var(--color-muted-gray);
+}
+
+.kyc-spin {
+  animation: kyc-spin 0.9s linear infinite;
+}
+
+@keyframes kyc-spin {
+  to { transform: rotate(360deg); }
+}
+
+.kyc-panel .kyc-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.kyc-panel .kyc-card h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-primary-navy);
+}
+
+.kyc-panel .kyc-card > p {
+  font-size: 14px;
+  color: #475569;
+}
+
+/* status */
+.kyc-status-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  border-radius: var(--radius-lg);
+  border: 1px solid;
+}
+
+.kyc-status-card h3 { font-size: 17px; color: var(--color-primary-navy); }
+.kyc-status-card p { margin-top: 2px; font-size: 13px; color: #475569; }
+
+.kyc-status-icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kyc-status-card.tone-pending { background: #F8FAFC; border-color: var(--color-border); }
+.kyc-status-card.tone-pending .kyc-status-icon { background: #E2E8F0; color: #475569; }
+.kyc-status-card.tone-verified { background: #ECFDF5; border-color: #6EE7B7; }
+.kyc-status-card.tone-verified .kyc-status-icon { background: #D1FAE5; color: #047857; }
+.kyc-status-card.tone-warning { background: #FFFBEB; border-color: #FCD34D; }
+.kyc-status-card.tone-warning .kyc-status-icon { background: #FEF3C7; color: #B45309; }
+.kyc-status-card.tone-rejected { background: #FEF2F2; border-color: #FCA5A5; }
+.kyc-status-card.tone-rejected .kyc-status-icon { background: #FEE2E2; color: #B91C1C; }
+
+/* alerts */
+.kyc-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.kyc-alert svg { flex-shrink: 0; margin-top: 2px; }
+.kyc-alert p { margin-top: 2px; }
+.kyc-alert-error { background: #FEF2F2; color: #991B1B; }
+.kyc-alert-success { background: #ECFDF5; color: #065F46; }
+.kyc-alert-warning { background: #FFFBEB; color: #92400E; }
+
+.kyc-link-btn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  font-weight: 700;
+  color: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* start */
+.kyc-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-left: 18px;
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.kyc-start .salvex-btn { align-self: flex-start; }
+
+/* upload */
+.kyc-upload-row {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.kyc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.kyc-field select,
+.kyc-field input[type="file"] {
+  min-height: 42px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  font-size: 14px;
+  color: var(--color-primary-navy);
+}
+
+.kyc-field input[type="file"] { padding: 6px; }
+
+.kyc-hint {
+  font-size: 12px;
+  color: var(--color-muted-gray);
+}
+
+/* documents */
+.kyc-doc-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.kyc-doc {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-off-white);
+}
+
+.kyc-doc.withdrawn { opacity: 0.55; }
+.kyc-doc-icon { flex-shrink: 0; color: var(--color-auction-red); }
+
+.kyc-doc-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--color-muted-gray);
+}
+
+.kyc-doc-info strong { font-size: 14px; color: var(--color-primary-navy); }
+
+.kyc-doc-actions {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.kyc-icon-btn {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  color: #334155;
+  cursor: pointer;
+}
+
+.kyc-icon-btn:hover { border-color: #CBD5E1; color: var(--color-primary-navy); }
+.kyc-icon-btn.danger:hover { background: #FEF2F2; border-color: #FCA5A5; color: #B91C1C; }
+
+/* submit */
+.kyc-submit-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--color-primary-navy);
+  color: #CBD5E1;
+  font-size: 14px;
+}
+
+.kyc-panel .salvex-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+@media (max-width: 760px) {
+  .kyc-upload-row { grid-template-columns: 1fr; }
+  .kyc-upload-row .salvex-btn { width: 100%; justify-content: center; }
+  .kyc-submit-bar .salvex-btn { width: 100%; justify-content: center; }
+}
+
+/* what we need: Aadhaar number + the three documents */
+.kyc-required-list { list-style: none; margin: 0 0 14px; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.kyc-required-list li { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: 10px;
+  background: #F8FAFC; border: 1px solid #E2E8F0; font-size: 14px; color: #475569; line-height: 1.45; }
+.kyc-required-list li svg { flex-shrink: 0; margin-top: 2px; color: #94A3B8; }
+.kyc-required-list li.done { background: #F0FDF4; border-color: #BBF7D0; }
+.kyc-required-list li.done svg { color: #16A34A; }
+.kyc-required-list strong { color: #0B1220; }
+.kyc-aadhaar { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: end; }
+.kyc-aadhaar .kyc-hint { grid-column: 1 / -1; margin: 0; }
+.kyc-aadhaar input { letter-spacing: 0.08em; font-variant-numeric: tabular-nums; }
+@media (max-width: 560px) { .kyc-aadhaar { grid-template-columns: 1fr; } }

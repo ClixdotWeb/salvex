@@ -57,7 +57,7 @@ async def race(monkeypatch):
 
 
 async def register_new(client, email, password=PASSWORD):
-    return await client.post("/api/auth/register", json={"name": "Race Test", "email": email, "password": password})
+    return await client.post("/api/auth/register", json={"name": "Race Test", "email": email, "password": password, "mobile": "+91 98765 43210"})
 
 
 async def test_a_code_can_be_used_by_only_one_of_many_simultaneous_requests(race):

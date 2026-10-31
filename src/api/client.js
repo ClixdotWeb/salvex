@@ -6,6 +6,7 @@
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 const TIMEOUT_MS = 15000;
+const UPLOAD_TIMEOUT_MS = 60000;   // documents and photos on slow mobile connections
 
 export class ApiError extends Error {
   constructor({ status, code, message, fieldErrors = {}, retryAfter = null }) {
@@ -57,20 +58,30 @@ function buildError(response, data) {
   return new ApiError({ status, code, message, fieldErrors, retryAfter });
 }
 
-export async function apiRequest(path, { method = 'GET', body, notifyUnauthorized = true } = {}) {
-  const headers = { Accept: 'application/json' };
-  if (body !== undefined) headers['Content-Type'] = 'application/json';
+/** Full address of an API path, e.g. for a download link (the session cookie goes with it). */
+export function apiUrl(path) {
+  return `${API_BASE}${path}`;
+}
+
+/**
+ * `body` is sent as JSON. `file` (a File/Blob) is sent as-is, with its own type as Content-Type:
+ * the backend reads uploads from the raw request body (no multipart forms).
+ */
+export async function apiRequest(path, { method = 'GET', body, file, headers: extraHeaders, notifyUnauthorized = true } = {}) {
+  const headers = { Accept: 'application/json', ...(extraHeaders || {}) };
+  if (file !== undefined) headers['Content-Type'] = file.type || 'application/octet-stream';
+  else if (body !== undefined) headers['Content-Type'] = 'application/json';
   if (csrfToken && method !== 'GET') headers['X-CSRF-Token'] = csrfToken;
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), file !== undefined ? UPLOAD_TIMEOUT_MS : TIMEOUT_MS);
   let response;
   try {
     response = await fetch(`${API_BASE}${path}`, {
       method,
       headers,
       credentials: 'include',
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body: file !== undefined ? file : body !== undefined ? JSON.stringify(body) : undefined,
       signal: controller.signal,
     });
   } catch {

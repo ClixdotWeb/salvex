@@ -1,0 +1,70 @@
+.nbell { position: relative; }
+
+.nbell-panel {
+  position: absolute; right: 0; top: calc(100% + 12px); z-index: 1200; width: 390px; max-width: calc(100vw - 24px);
+  display: flex; flex-direction: column; overflow: hidden;
+  background: #fff; border: 1px solid #E5ECF5; border-radius: 22px;
+  box-shadow: 0 24px 60px rgba(11, 18, 32, 0.22), 0 4px 12px rgba(11, 18, 32, 0.08);
+  animation: nbell-in 0.16s ease-out; transform-origin: top right;
+}
+@keyframes nbell-in { from { opacity: 0; transform: translateY(-6px) scale(0.98); } to { opacity: 1; transform: none; } }
+
+/* header: navy band */
+.nbell-head { padding: 16px 16px 12px; background: linear-gradient(140deg, #0B1220 0%, #13213D 100%); color: #fff; }
+.nbell-head-row { display: flex; align-items: center; gap: 10px; }
+.nbell-head-icon { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 11px;
+  background: rgba(59, 130, 246, 0.22); color: #93C5FD; }
+.nbell-head strong { font-size: 16px; font-weight: 800; letter-spacing: -0.01em; }
+.nbell-count { padding: 3px 9px; border-radius: 999px; background: #3B82F6; color: #fff; font-size: 11.5px; font-weight: 700; }
+.nbell-close { margin-left: auto; display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 10px;
+  border: 0; background: rgba(255, 255, 255, 0.08); color: #CBD5E1; cursor: pointer; }
+.nbell-close:hover { background: rgba(255, 255, 255, 0.16); color: #fff; }
+
+.nbell-tools { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 14px; }
+.nbell-filter { display: inline-flex; padding: 3px; border-radius: 12px; background: rgba(255, 255, 255, 0.08); }
+.nbell-filter button { padding: 6px 14px; border: 0; border-radius: 9px; background: none; color: #94A3B8; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.nbell-filter button.on { background: #fff; color: #0B1220; }
+.nbell-readall { display: inline-flex; align-items: center; gap: 5px; padding: 6px 10px; border: 0; border-radius: 9px; background: none;
+  color: #93C5FD; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.nbell-readall:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+
+/* list */
+.nbell-list { list-style: none; margin: 0; padding: 8px; max-height: 440px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #CBD5E1 transparent; }
+.nbell-list::-webkit-scrollbar { width: 6px; }
+.nbell-list::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 6px; }
+.nbell-list li + li { margin-top: 4px; }
+.nbell-item { display: flex; align-items: flex-start; gap: 12px; width: 100%; padding: 12px; border: 0; border-radius: 16px; background: #fff;
+  text-align: left; font: inherit; cursor: pointer; transition: background 0.15s ease; }
+.nbell-item:hover { background: #F5F8FC; }
+.nbell-item.unread { background: #F2F7FF; }
+.nbell-item.unread:hover { background: #E8F0FF; }
+.nbell-item:focus-visible { outline: 2px solid #3B82F6; outline-offset: -2px; }
+
+.nbell-icon { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 40px; height: 40px; border-radius: 13px; }
+.nbell-icon.tone-lavender { background: #EDE9FE; color: #6D28D9; }
+.nbell-icon.tone-amber { background: #FEF3C7; color: #B45309; }
+.nbell-icon.tone-rose { background: #FFE4E6; color: #BE123C; }
+.nbell-icon.tone-green { background: #DCFCE7; color: #15803D; }
+.nbell-icon.tone-sky { background: #E0F2FE; color: #0369A1; }
+.nbell-icon.tone-slate { background: #F1F5F9; color: #334155; }
+
+.nbell-text { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
+.nbell-title { font-size: 14px; font-weight: 600; color: #0B1220; line-height: 1.35; overflow-wrap: anywhere; }
+.nbell-item.unread .nbell-title { font-weight: 800; }
+.nbell-body { font-size: 13px; color: #475569; line-height: 1.45; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.nbell-time { font-size: 11.5px; font-weight: 600; color: #94A3B8; }
+.nbell-dot { flex-shrink: 0; width: 9px; height: 9px; margin-top: 6px; border-radius: 50%; background: #3B82F6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.18); }
+.nbell-go { flex-shrink: 0; margin-top: 4px; color: #CBD5E1; }
+.nbell-item:hover .nbell-go { color: #64748B; }
+
+/* empty and loading */
+.nbell-empty { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 36px 20px; text-align: center; color: #64748B; font-size: 13.5px; }
+.nbell-empty strong { font-size: 15px; color: #0B1220; }
+.nbell-empty-icon { display: inline-flex; align-items: center; justify-content: center; width: 52px; height: 52px; margin-bottom: 4px; border-radius: 16px;
+  background: #EEF4FF; color: #075BFF; }
+
+@media (max-width: 480px) {
+  .nbell-panel { position: fixed; right: 10px; left: 10px; width: auto; top: 64px; max-height: calc(100vh - 80px); }
+  .nbell-list { max-height: none; flex: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .nbell-panel { animation: none; } }

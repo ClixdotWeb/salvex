@@ -6,6 +6,7 @@ from app.core.db_url import to_async_url, to_sync_url
 # Environments where relaxed (developer-friendly) behaviour is allowed.
 DEV_ENVIRONMENTS = {"development", "test"}
 ALL_ENVIRONMENTS = {"development", "test", "staging", "production"}
+SMS_PROVIDERS = {"console"}  # add the company's provider here when it is chosen (see app/services/sms.py)
 
 # Substrings that mark a secret key as a placeholder/sample value.
 _WEAK_SECRET_HINTS = (
@@ -96,6 +97,68 @@ class Settings(BaseSettings):
         description="Where the development email outbox is written (development/test only)"
     )
 
+    # ---------------- Mobile number verification (SMS OTP) ----------------
+    MOBILE_OTP_REQUIRED: bool = Field(
+        default=True,
+        description="Registration needs the SMS code as well as the email code, and bidding needs a verified "
+                    "mobile. Set false to run without SMS (for example until the SMS provider and DLT are ready)."
+    )
+    SMS_PROVIDER: str = Field(
+        default="console",
+        description="console = developer outbox file (development/test only). A real provider is added here "
+                    "once the company chooses one."
+    )
+
+    # ---------------- KYC documents ----------------
+    # Technical safety limits, not business rules; the company has not yet set document requirements.
+    KYC_STORAGE_DIR: str = Field(
+        default=".private_storage",
+        description="Folder for uploaded KYC files (local disk adapter). Must NOT be served by any web server."
+    )
+    KYC_MAX_FILE_BYTES: int = Field(default=5 * 1024 * 1024, ge=1024, le=25 * 1024 * 1024)
+    KYC_MAX_DOCUMENTS_PER_SUBMISSION: int = Field(default=10, ge=1, le=50)
+    # Documents needed before a KYC can be sent for review (client: Aadhaar copy, PAN card, cancelled cheque) and
+    # whether the Aadhaar number must be entered. Empty list = any one document.
+    KYC_REQUIRED_DOCUMENTS: str = Field(default="aadhaar_card,pan_card,cancelled_cheque")
+    KYC_REQUIRE_AADHAAR_NUMBER: bool = Field(default=True)
+
+    # ---------------- Vehicle photos ----------------
+    # Provisional technical limits until the company sets the photo rules.
+    VEHICLE_MAX_PHOTO_BYTES: int = Field(default=5 * 1024 * 1024, ge=1024, le=25 * 1024 * 1024)
+    VEHICLE_MIN_PHOTOS: int = Field(default=1, ge=0, le=50, description="Photos needed before submitting for review")
+    VEHICLE_MAX_PHOTOS: int = Field(default=20, ge=1, le=100)
+
+    # ---------------- Auctions ----------------
+    # Provisional defaults until the company confirms them; the admin sets the values per auction.
+    AUCTION_DEFAULT_EXTENSION_MINUTES: int = Field(default=2, ge=1, le=60)
+    AUCTION_MIN_DURATION_MINUTES: int = Field(default=5, ge=1, le=1440)
+    AUCTION_MAX_DURATION_DAYS: int = Field(default=60, ge=1, le=365)
+    AUCTION_CLOSER_ENABLED: bool = Field(default=True, description="Close ended auctions automatically (off in tests)")
+    AUCTION_CLOSER_INTERVAL_SECONDS: float = Field(default=5, ge=1, le=300)
+
+    # ---------------- Website address (links in emails) ----------------
+    PUBLIC_SITE_URL: str = Field(default="http://localhost:5173", description="Base address of the website, used in email links")
+
+    # ---------------- Winner payment ----------------
+    # Provisional values until the client decides; change them here, no code change needed.
+    ORDER_PAYMENT_DEADLINE_HOURS: int = Field(default=48, ge=1, le=24 * 30)
+    # Online payment by the winner on the website (bank transfer + UTR, 48 h deadline, automatic default and
+    # bidding block, payment reminders). OFF for this client: the price and the service fee are collected outside
+    # the website and the admin records the fee on the result. Switch on only if the business changes.
+    ONLINE_PAYMENT_FLOW: bool = Field(default=False)
+    # Public seller accounts (register as a seller and list vehicles). OFF for this client: only admins add vehicles.
+    SELLER_ACCOUNTS: bool = Field(default=False)
+    # Reminder times for unpaid wins, as hours of the day in India (IST). Empty = no reminders.
+    PAYMENT_REMINDER_HOURS_IST: str = Field(default="9,14,19", description="e.g. 9,14,19 = 9 am, 2 pm and 7 pm")
+    DEFAULT_BIDDING_BLOCK_DAYS: int = Field(default=30, ge=0, le=3650, description="Bidding block after an unpaid win")
+    PERMANENT_BLOCK_AFTER_DEFAULTS: int = Field(default=2, ge=1, le=10, description="Unpaid wins before a permanent block")
+    # Company bank account shown to winners for NEFT/RTGS. Leave empty until the client provides it.
+    COMPANY_BANK_ACCOUNT_NAME: str = Field(default="")
+    COMPANY_BANK_ACCOUNT_NUMBER: str = Field(default="")
+    COMPANY_BANK_IFSC: str = Field(default="")
+    COMPANY_BANK_NAME: str = Field(default="")
+    COMPANY_BANK_BRANCH: str = Field(default="")
+
     # ---------------- Validators ----------------
     @field_validator("APP_ENV")
     @classmethod
@@ -127,6 +190,14 @@ class Settings(BaseSettings):
         v = v.strip().lower()
         if v not in {"console", "smtp"}:
             raise ValueError("EMAIL_PROVIDER must be console or smtp")
+        return v
+
+    @field_validator("SMS_PROVIDER")
+    @classmethod
+    def validate_sms_provider(cls, v: str) -> str:
+        v = v.strip().lower()
+        if v not in SMS_PROVIDERS:
+            raise ValueError("SMS_PROVIDER must be one of: " + ", ".join(sorted(SMS_PROVIDERS)))
         return v
 
     @field_validator("COOKIE_DOMAIN")
@@ -174,6 +245,9 @@ class Settings(BaseSettings):
                 problems.append("EMAIL_PROVIDER must be smtp (the developer outbox is not allowed)")
             elif not (self.SMTP_USER and self.SMTP_PASSWORD):
                 problems.append("SMTP_USER and SMTP_PASSWORD must be set")
+            if self.MOBILE_OTP_REQUIRED and self.SMS_PROVIDER == "console":
+                problems.append("MOBILE_OTP_REQUIRED needs a real SMS_PROVIDER (the developer outbox is not "
+                                "allowed); set MOBILE_OTP_REQUIRED=false until SMS is ready")
             origins = self.cors_origins
             if not origins:
                 problems.append("FRONTEND_ORIGINS must list the website origin(s)")

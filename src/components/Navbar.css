@@ -597,6 +597,11 @@
   transform: translateX(0);
 }
 
+/* Closed drawer sits just off-screen; hide its shadow so it doesn't darken the page's left edge. */
+.mobile-drawer:not(.mobile-drawer-open) {
+  box-shadow: none !important;
+}
+
 .mobile-drawer-header {
   height: 64px;
   padding: 0 20px;
@@ -706,12 +711,42 @@
 /* ==========================================================================
    RESPONSIVE BREAKPOINTS
    ========================================================================== */
+@media (max-width: 1320px) {
+  .navbar-links-center {
+    gap: 24px;
+  }
+}
+
+@media (max-width: 1180px) {
+  .navbar-links-center {
+    gap: 16px;
+  }
+  .navbar-links-center .nav-link-btn {
+    font-size: 13.5px;
+  }
+}
+
 @media (max-width: 1080px) {
   .navbar-links-center {
-    gap: 22px;
+    gap: 12px;
+  }
+  .navbar-links-center .nav-link-btn {
+    font-size: 13px;
+  }
+  .navbar-links-center .nav-live-capsule {
+    display: none;
   }
   .navbar-search-pill-form {
     width: 200px;
+  }
+}
+
+@media (max-width: 960px) {
+  .navbar-links-center {
+    gap: 8px;
+  }
+  .navbar-links-center .nav-link-btn {
+    font-size: 12.5px;
   }
 }
 
@@ -1008,3 +1043,7 @@
   background-color: #EFF6FF;
   color: #075BFF;
 }
+
+/* Ready to Lift is highlighted (many enquiries) */
+.nav-rtl-dot { display: inline-block; width: 7px; height: 7px; margin-left: 6px; border-radius: 50%; background: #16A34A;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.18); vertical-align: middle; }

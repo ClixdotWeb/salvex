@@ -91,13 +91,179 @@ async def test_role_changes_take_effect_immediately_in_both_directions(api, guar
     assert (await guarded.get("/admin-only", headers=headers)).status_code == 403
 
 
+def role_escalation_problems(openapi: dict) -> list:
+    """
+    Every way a client could SEND a role value other than bidder/seller to a state-changing route.
+    All request bodies (any content type, nested models, arrays, unions, $refs resolved) and every
+    parameter of every non-GET route are inspected. A role field that accepts free text counts as a
+    problem too. Response models are not inspected: showing that a user IS an admin grants nothing.
+    """
+    components = openapi.get("components", {}).get("schemas", {})
+    problems = []
+
+    def resolve(node):
+        while isinstance(node, dict) and "$ref" in node:
+            node = components[node["$ref"].rsplit("/", 1)[-1]]
+        return node
+
+    def role_values(node) -> list:
+        node = resolve(node)
+        if "enum" in node:
+            return list(node["enum"])
+        if "const" in node:
+            return [node["const"]]
+        options = node.get("anyOf") or node.get("oneOf") or node.get("allOf")
+        if options:
+            return [v for o in options if resolve(o).get("type") != "null" for v in role_values(o)]
+        return ["<any text>"]
+
+    def roles_in(node, seen) -> list:
+        if isinstance(node, dict) and "$ref" in node:
+            name = node["$ref"].rsplit("/", 1)[-1]
+            if name in seen:
+                return []
+            seen = seen | {name}
+        node = resolve(node)
+        found = []
+        for key, prop in node.get("properties", {}).items():
+            if key.lower() == "role":
+                found.append(role_values(prop))
+            found += roles_in(prop, seen)
+        for key in ("items", "additionalProperties"):
+            if isinstance(node.get(key), dict):
+                found += roles_in(node[key], seen)
+        for key in ("anyOf", "oneOf", "allOf"):
+            for option in node.get(key, []):
+                found += roles_in(option, seen)
+        return found
+
+    for path, methods in openapi["paths"].items():
+        for method, operation in methods.items():
+            if method == "get":
+                continue
+            for content in operation.get("requestBody", {}).get("content", {}).values():
+                for values in roles_in(content.get("schema", {}), frozenset()):
+                    if not set(values) <= {"bidder", "seller"}:
+                        problems.append(f"{method.upper()} {path} body role accepts {values}")
+            for param in operation.get("parameters", []):
+                if param["name"].lower() == "role":
+                    problems.append(f"{method.upper()} {path} takes role as a {param['in']} parameter")
+    return problems
+
+
 async def test_no_public_endpoint_accepts_a_role_other_than_bidder_or_seller():
     schema = main_app.openapi()
-    for name, definition in schema["components"]["schemas"].items():
-        props = definition.get("properties", {})
-        if "role" in props and name != "UserResponse" and name != "MeResponse":
-            assert props["role"].get("enum") == ["bidder", "seller"], name
-    assert not [path for path in schema["paths"] if "admin" in path.lower()]   # no admin-creation route exists
+    assert role_escalation_problems(schema) == []
+    # The walk really reaches the role fields that exist, so the empty result above is not the checker
+    # seeing nothing: allowing "admin" in either real request model is caught on the real route.
+    import copy
+    for model, route in (("UserRegisterRequest", "POST /api/auth/register"),
+                         ("ChangeRoleRequest", "POST /api/admin/users/{user_id}/role")):
+        tampered = copy.deepcopy(schema)
+        tampered["components"]["schemas"][model]["properties"]["role"]["enum"].append("admin")
+        assert any(p.startswith(route + " ") for p in role_escalation_problems(tampered)), model
+
+    # Route inventory: a new state-changing admin route must be reviewed and added here on purpose.
+    allowed_writes = {
+        "/api/admin/users/{user_id}/suspend": {"post"},
+        "/api/admin/users/{user_id}/reactivate": {"post"},
+        "/api/admin/users/{user_id}/role": {"post"},
+        "/api/admin/kyc/submissions/{submission_id}/decision": {"post"},
+        "/api/admin/vehicles/{vehicle_id}/review": {"post"},
+        "/api/admin/auctions": {"post"},
+        "/api/admin/auctions/{auction_id}": {"patch"},
+        "/api/admin/auctions/{auction_id}/pause": {"post"},
+        "/api/admin/auctions/{auction_id}/resume": {"post"},
+        "/api/admin/auctions/{auction_id}/extend": {"post"},
+        "/api/admin/auctions/{auction_id}/cancel": {"post"},
+        "/api/admin/auctions/{auction_id}/close": {"post"},
+        "/api/admin/orders/{order_id}/confirm-payment": {"post"},
+        "/api/admin/orders/{order_id}/reject-payment": {"post"},
+        "/api/admin/orders/{order_id}/cancel": {"post"},
+        "/api/admin/orders/{order_id}/complete": {"post"},
+        "/api/admin/users/{user_id}/unblock-bidding": {"post"},
+        "/api/admin/parts": {"post"},
+        "/api/admin/parts/{part_id}": {"put"},
+        "/api/admin/parts/{part_id}/photo": {"post"},
+        "/api/admin/part-requests/{request_id}/update": {"post"},
+        "/api/admin/contact-messages/{message_id}/update": {"post"},
+        "/api/admin/orders/{order_id}/deal": {"patch"},
+        "/api/admin/orders/{order_id}/fees": {"post"},
+        "/api/admin/vehicles/{vehicle_id}/mark-sold": {"post"},
+        "/api/admin/vehicles/{vehicle_id}/reopen": {"post"},
+        "/api/admin/enquiries/{enquiry_id}/update": {"post"},
+        "/api/admin/vehicles/bulk-check": {"post"},
+        "/api/admin/vehicles/bulk-import": {"post"},
+        "/api/admin/vehicles/bulk-publish": {"post"},
+    }
+    for path, methods in schema["paths"].items():
+        if "admin" in path.lower():
+            writes = set(methods) - {"get"}
+            assert writes == allowed_writes.get(path, set()), path
+
+
+def test_the_role_checker_catches_every_kind_of_escalation_route():
+    """The checker above is only useful if it fails on unsafe routes; prove it with a throwaway app."""
+    from typing import List, Literal, Optional, Union
+
+    from fastapi import Header
+    from pydantic import BaseModel
+
+    class Safe(BaseModel):
+        role: Literal["bidder", "seller"]
+
+    class Direct(BaseModel):
+        role: Literal["bidder", "seller", "admin"]
+
+    class FreeText(BaseModel):
+        role: str
+
+    class Inner(BaseModel):
+        role: Optional[Literal["admin"]] = None
+
+    class Nested(BaseModel):
+        profile: Inner
+
+    class InList(BaseModel):
+        people: List[Inner]
+
+    class Alt(BaseModel):
+        other: int
+
+    bad = FastAPI()
+
+    @bad.post("/safe")
+    async def safe(body: Safe): ...
+
+    @bad.get("/read")                      # a GET filter by role is a read, not an escalation
+    async def read(role: Optional[str] = None): ...
+
+    @bad.post("/direct")
+    async def direct(body: Direct): ...
+
+    @bad.patch("/free")
+    async def free(body: FreeText): ...
+
+    @bad.put("/nested")
+    async def nested(body: Nested): ...
+
+    @bad.post("/list")
+    async def in_list(body: InList): ...
+
+    @bad.post("/union")
+    async def union(body: Union[Alt, Inner]): ...
+
+    @bad.post("/query")
+    async def query(role: str): ...
+
+    @bad.post("/header")
+    async def header(role: str = Header(...)): ...
+
+    # (Form bodies are inspected the same way as JSON - every requestBody content type is walked - but
+    # FastAPI cannot declare a Form route here without the python-multipart package, which is not installed.)
+    problems = role_escalation_problems(bad.openapi())
+    flagged = {p.split(" ")[1] for p in problems}
+    assert flagged == {"/direct", "/free", "/nested", "/list", "/union", "/query", "/header"}, problems
 
 
 async def test_requests_cannot_smuggle_privileged_fields(api):

@@ -88,6 +88,16 @@ export function AuthProvider({ children }) {
     [apply],
   );
 
+  /** The server already signed the user in (e.g. after email verification); just show it. */
+  const adoptSession = useCallback(
+    (signedInUser) => {
+      setNotice(null);
+      setDemoRole(null);
+      apply('authenticated', signedInUser);
+    },
+    [apply],
+  );
+
   /**
    * Ends the session on the server and clears everything on this device. The device is ALWAYS
    * signed out locally; `serverRevoked` says whether the server confirmed that the session was ended.
@@ -113,13 +123,14 @@ export function AuthProvider({ children }) {
       notice,
       clearNotice: () => setNotice(null),
       login,
+      adoptSession,
       logout,
       refresh,
       // Development-only shortcut for viewing sample screens; always null/no-op in real builds.
       demoRole: DEMO_PERSONAS_ENABLED ? demoRole : null,
       enterDemo: DEMO_PERSONAS_ENABLED ? setDemoRole : () => {},
     }),
-    [status, user, notice, login, logout, refresh, demoRole],
+    [status, user, notice, login, adoptSession, logout, refresh, demoRole],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

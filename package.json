@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:all": "node scripts/run-all.mjs",
+    "start:all": "vite build && node scripts/run-all.mjs --preview",
     "build": "vite build",
     "lint": "oxlint",
     "test:e2e": "playwright test",

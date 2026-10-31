@@ -1,0 +1,250 @@
+/* ==========================================================================
+   AUTH PAGES (sign in, register, verify, password) - split layout
+   Brand panel on the left (wide screens only), form on the right.
+   ========================================================================== */
+
+body .salvex-login-page.auth-split {
+  min-height: 100vh;
+  padding: calc(var(--salvex-nav-offset, 158px) + 40px) 24px 64px;
+  align-items: flex-start;
+  background:
+    radial-gradient(circle at 15% 0%, rgba(7, 91, 255, 0.07) 0%, rgba(7, 91, 255, 0) 45%),
+    #F4F7FB;
+}
+
+.auth-frame {
+  width: 100%;
+  max-width: 1040px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  background: #FFFFFF;
+  border: 1px solid #E5ECF5;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 30px 70px -30px rgba(11, 18, 32, 0.25), 0 2px 8px rgba(11, 18, 32, 0.04);
+}
+
+/* ---------- Brand panel: just the logo ---------- */
+.auth-aside {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 48px 40px;
+  background: linear-gradient(160deg, #070B14 0%, #0B1220 60%, #0E1A33 100%);
+  color: #FFFFFF;
+}
+
+.auth-aside-glow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 520px;
+  height: 520px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(7, 91, 255, 0.35) 0%, rgba(7, 91, 255, 0) 62%);
+  z-index: -1;
+}
+
+.auth-aside .salvex-logo-img {
+  border-radius: 22px;
+  box-shadow: 0 20px 50px -12px rgba(7, 91, 255, 0.55);
+}
+
+.auth-aside-name {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #9DBBFF;
+}
+
+/* ---------- Form side ---------- */
+.auth-split .login-card-container {
+  max-width: none;
+  margin: 0;
+  padding: 48px 52px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.auth-split .login-header {
+  text-align: left;
+  margin-bottom: 28px;
+}
+
+.auth-split .login-logo-wrap {
+  display: none;            /* the brand panel carries the logo */
+}
+
+.auth-split .login-title {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: #0B1220;
+  margin: 0 0 8px;
+}
+
+.auth-split .login-subtitle {
+  margin: 0;
+  max-width: 460px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: #64748B;
+}
+
+.auth-split .login-form {
+  gap: 18px;
+}
+
+.auth-split .form-group label {
+  font-size: 13.5px;
+  color: #1E293B;
+}
+
+.auth-split .input-with-icon input {
+  height: 50px;
+  border-radius: 12px;
+  border-color: #D5DEEA;
+  font-size: 15px;
+  background: #FBFCFE;
+}
+
+.auth-split .input-with-icon input:hover {
+  border-color: #B8C6D9;
+}
+
+.auth-split .input-with-icon input:focus {
+  background: #FFFFFF;
+  border-color: var(--color-auction-red, #075BFF);
+  box-shadow: 0 0 0 4px rgba(7, 91, 255, 0.12);
+}
+
+.auth-split .input-with-icon input[aria-invalid="true"] {
+  border-color: #DC2626;
+  background: #FFFBFB;
+}
+
+.auth-split .btn-toggle-eye {
+  min-width: 36px;
+  min-height: 36px;
+  border-radius: 8px;
+}
+
+.auth-split .btn-login-submit {
+  height: 52px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  box-shadow: 0 10px 24px -10px rgba(7, 91, 255, 0.7);
+}
+
+.auth-split .btn-login-submit svg {
+  transition: transform 0.2s ease;
+}
+
+.auth-split .btn-login-submit:hover:not(:disabled) svg {
+  transform: translateX(3px);
+}
+
+.auth-split .login-footer {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #EEF2F7;
+  text-align: left;
+  font-size: 14px;
+}
+
+.auth-split .login-footer p {
+  margin: 0;
+}
+
+.auth-split .link-register {
+  font-size: 14px;
+}
+
+/* Errors read as errors (red); the earlier blue was easy to miss. */
+.auth-split .alert-error {
+  background: #FEF2F2;
+  border-color: #FECACA;
+  color: #B91C1C;
+}
+
+.auth-split .login-alert-banner {
+  border-radius: 12px;
+  font-size: 13.5px;
+}
+
+.auth-split .auth-secondary-btn {
+  height: 44px;
+  border-radius: 10px;
+}
+
+/* Register: the four fields sit two by two */
+.auth-split.auth-register .login-card-container {
+  padding: 44px 48px;
+}
+
+.auth-split.auth-register .auth-register-grid {
+  gap: 18px 18px;
+}
+
+body .salvex-login-page.auth-split.auth-register {
+  padding-top: calc(var(--salvex-nav-offset, 158px) + 32px);
+  padding-bottom: 56px;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+  .auth-frame {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 560px;
+  }
+
+  .auth-aside {
+    display: none;
+  }
+
+  .auth-split .login-logo-wrap {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 18px;
+  }
+}
+
+@media (max-width: 600px) {
+  body .salvex-login-page.auth-split,
+  body .salvex-login-page.auth-split.auth-register {
+    padding: calc(var(--salvex-nav-offset, 90px) + 16px) 16px 40px;
+  }
+
+  .auth-frame {
+    border-radius: 20px;
+  }
+
+  .auth-split .login-card-container,
+  .auth-split.auth-register .login-card-container {
+    padding: 28px 20px;
+  }
+
+  .auth-split .login-title {
+    font-size: 24px;
+  }
+
+  .auth-split .login-subtitle {
+    font-size: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-split .btn-login-submit svg {
+    transition: none;
+  }
+}

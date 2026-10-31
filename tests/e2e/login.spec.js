@@ -103,11 +103,11 @@ test.describe('sign-in page', () => {
   });
 
   test('after signing in you are taken back to the page you were trying to open', async ({ page }) => {
-    await page.goto('/payment/won-101');
+    await page.goto('/orders/order-1/receipt');
     await expect(page).toHaveURL(/\/login$/);
     await page.locator('.salvex-page-loader').waitFor({ state: 'detached', timeout: 20000 });
     await signInForm(page, USERS.bidder.email, PASSWORD);
-    await expect(page).toHaveURL(/\/payment\/won-101$/);
+    await expect(page).toHaveURL(/\/orders\/order-1\/receipt$/);
   });
 
   test('someone who is already signed in is sent to their own home instead of seeing the form', async ({ page }) => {

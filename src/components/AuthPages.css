@@ -209,3 +209,65 @@ a.link-forgot {
     padding-top: 150px;
   }
 }
+
+/* Registration: short form that fits on one screen */
+body .salvex-login-page.auth-register { padding-top: calc(var(--salvex-nav-offset) + 24px); padding-bottom: 32px; align-items: flex-start; }
+.auth-register .login-card-container { max-width: 680px; padding: 28px 32px; }
+.auth-register .login-header { margin-bottom: 18px; }
+.auth-register .login-logo-wrap { margin-bottom: 10px; }
+.auth-register .login-badge-secure { display: none; }
+.auth-register .login-title { margin-bottom: 4px; }
+.auth-register .login-form { gap: 14px; }
+.auth-register .login-footer { margin-top: 16px; }
+.auth-register-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 16px; align-items: start; }
+@media (max-width: 640px) {
+  body .salvex-login-page.auth-register { padding-top: calc(var(--salvex-nav-offset) + 12px); }
+  .auth-register .login-card-container { padding: 22px 18px; }
+  .auth-register-grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+}
+
+/* Signed in: round avatar with the first letter of the name */
+.navbar-avatar { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; padding: 0; border: 0;
+  border-radius: 50%; background: linear-gradient(140deg, #075BFF 0%, #0B1220 100%); color: #fff; font: inherit; font-size: 16px;
+  font-weight: 800; line-height: 1; cursor: pointer; box-shadow: 0 0 0 3px #fff, 0 0 0 4px #DBEAFE; transition: box-shadow 0.15s ease, transform 0.15s ease; }
+.navbar-avatar:hover { box-shadow: 0 0 0 3px #fff, 0 0 0 5px #93C5FD; transform: translateY(-1px); }
+.navbar-avatar:focus-visible { outline: 2px solid #075BFF; outline-offset: 3px; }
+.mobile-user-initial { font-size: 16px; font-weight: 800; line-height: 1; }
+.mobile-user-box-btn.is-avatar { border-radius: 50%; background: linear-gradient(140deg, #075BFF 0%, #0B1220 100%); }
+
+/* Avatar menu */
+.acct { position: relative; }
+.acct-menu { position: absolute; right: 0; top: calc(100% + 12px); z-index: 1200; width: 280px; overflow: hidden; background: #fff;
+  border: 1px solid #E5ECF5; border-radius: 18px; box-shadow: 0 24px 60px rgba(11, 18, 32, 0.22), 0 4px 12px rgba(11, 18, 32, 0.08);
+  animation: acct-in 0.14s ease-out; transform-origin: top right; }
+@keyframes acct-in { from { opacity: 0; transform: translateY(-6px) scale(0.98); } to { opacity: 1; transform: none; } }
+.acct-head { display: flex; align-items: center; gap: 12px; padding: 16px; background: linear-gradient(140deg, #0B1220 0%, #13213D 100%); color: #fff; }
+.acct-avatar { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 44px; height: 44px; border-radius: 50%;
+  background: linear-gradient(140deg, #075BFF 0%, #3B82F6 100%); font-size: 18px; font-weight: 800; }
+.acct-who { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.acct-who strong { font-size: 15px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.acct-who span { font-size: 12.5px; color: #CBD5E1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.acct-who .acct-id { margin-top: 4px; align-self: flex-start; padding: 2px 8px; border-radius: 999px; background: rgba(59, 130, 246, 0.25);
+  color: #BFDBFE; font-size: 11.5px; font-weight: 700; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.acct-items { display: flex; flex-direction: column; padding: 6px; }
+.acct-items + .acct-items { border-top: 1px solid #EEF2F7; }
+.acct-items button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border: 0; border-radius: 12px; background: none;
+  color: #0B1220; font: inherit; font-size: 14px; font-weight: 600; text-align: left; cursor: pointer; }
+.acct-items button svg { color: #64748B; }
+.acct-items button:hover, .acct-items button:focus-visible { background: #F2F7FF; outline: none; }
+.acct-items .acct-signout { color: #BE123C; }
+.acct-items .acct-signout svg { color: #BE123C; }
+.acct-items .acct-signout:hover { background: #FFF1F2; }
+@media (prefers-reduced-motion: reduce) { .acct-menu { animation: none; } }
+
+/* Top bar: search and bell as round buttons, same size as the avatar */
+.navbar-action-icon-btn.nav-round { width: 44px; height: 44px; background: #F1F5F9; color: #0B1220; border: 1px solid #E2E8F0; }
+.navbar-action-icon-btn.nav-round:hover { background: #EEF4FF; border-color: #BFD4FF; color: #075BFF; }
+.navbar-action-icon-btn.nav-round .navbar-action-badge { top: -3px; right: -3px; width: 20px; height: 20px; font-size: 11px; box-shadow: 0 0 0 2px #fff; }
+.navbar-avatar { width: 44px; height: 44px; font-size: 17px; }
+.navbar-action-icon-btn.nav-round .navbar-action-badge { width: auto; min-width: 20px; padding: 0 5px; border-radius: 10px; }
+/* plain icons (no circle), still large */
+.navbar-action-icon-btn.nav-round { background: transparent; border: 0; }
+.navbar-action-icon-btn.nav-round:hover { background: transparent; border: 0; color: #075BFF; }
+.navbar-action-icon-btn.nav-round svg { width: 24px; height: 24px; }
+.navbar-action-icon-btn.nav-round .navbar-action-badge { top: 2px; right: 2px; }

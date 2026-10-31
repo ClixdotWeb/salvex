@@ -6,7 +6,6 @@ import {
   Ban,
   CalendarCheck,
   Search,
-  FileText,
   Truck,
   Receipt,
   ArrowRight,
@@ -17,69 +16,67 @@ import {
 export default function BiddingRulesPage({ onRegisterClick }) {
   const rules = [
     {
-      id: 'starting-bid',
-      title: '1. Starting Bid & Reserve Price',
-      icon: Gavel,
+      id: 'eligibility',
+      title: '1. Who Can Bid',
+      icon: ShieldAlert,
       content:
-        'Every vehicle lot published on Salvex Auction has an established starting bid set in consultation with the consigning bank, insurer, or vehicle owner. If a confidential reserve price is attached, the lot will not be awarded unless the winning bid equals or exceeds that benchmark.'
+        'You need a Salvex account with a verified email and approved KYC (identity documents checked by our team). Bidding can be blocked for accounts that are suspended.'
     },
     {
-      id: 'bid-increment',
-      title: '2. Minimum Bid Increment Table',
-      icon: Clock,
+      id: 'starting-bid',
+      title: '2. Starting Price & Higher Bids',
+      icon: Gavel,
       content:
-        'To prevent micro-bidding delays, all live counter-bids must adhere to the standardized increment table below:',
-      hasTable: true
+        'Every auction shows a starting price. The first bid must be at least the starting price. Every later bid must be higher than the current highest bid, by any amount; there is no fixed increment. Before each bid you see the amount again and accept the terms.'
     },
     {
       id: 'closing-time',
-      title: '3. Auction Closing Time & Dynamic Overtime (Anti-Sniping)',
+      title: '3. Closing Time & Time Extension',
       icon: Clock,
       content:
-        'Auctions terminate precisely at the posted countdown deadline. However, to eliminate last-second sniping software, any verified bid submitted in the final 60 seconds of a lot automatically extends the clock by 120 seconds. This process repeats until no further bids occur for a full 2-minute cycle.'
+        'Auctions open and close by the Salvex server clock, not the clock on your device. When time extension is switched on for an auction, a bid placed in the last few minutes moves the end time forward by the same number of minutes, so other bidders can respond. The auction page shows whether extension is on.'
     },
     {
       id: 'cancellation',
-      title: '4. Bid Cancellation & Irrevocability Policy',
+      title: '4. Bids Cannot Be Withdrawn',
       icon: Ban,
       content:
-        'Platform Demo: Bids placed during demo mode are simulated sample offers. In production, bids cannot be canceled, withdrawn, or amended downwards once registered. Bidders are advised to verify vehicle inspection reports prior to bidding.'
+        'A bid is a binding offer to buy the vehicle at that amount. Once placed, it cannot be cancelled, withdrawn or reduced. Check the photos and details carefully before you bid.'
     },
     {
       id: 'payment-deadline',
-      title: '5. Payment Deadlines & Settlement Remittance (Demo)',
+      title: '5. After You Win',
       icon: CalendarCheck,
       content:
-        'Winning bidders must deposit a mandatory 10% Earnest Money Deposit (EMD) within 24 hours of auction close. The remaining 90% balance, together with buyer’s premium and statutory GST, must be remitted within 48 hours via RTGS/NEFT to the designated institutional settlement account.'
+        'The highest bidder when the auction closes wins and is notified at once. Our team then contacts the winner to complete the purchase, the documents and the handover. Any service fee is explained by our team before the purchase is completed.'
+    },
+    {
+      id: 'non-payment',
+      title: '6. If a Winner Withdraws',
+      icon: AlertTriangle,
+      content:
+        'A winning bid is a commitment to buy. A winner who withdraws without a valid reason may lose the right to bid on future auctions.'
     },
     {
       id: 'inspection',
-      title: '6. Vehicle Inspection & "As-Is, Where-Is" Terms',
+      title: '7. "As-Is, Where-Is" Condition',
       icon: Search,
       content:
-        'All salvage, damaged, and repossessed auction lots are auctioned strictly on an "As-Is, Where-Is" basis with all faults and damage. While Salvex displays sample multi-point inspection checklists and defect photography, bidders are encouraged to perform physical yard inspections during authorized pre-auction windows.'
+        'Salvage, damaged and used vehicles are sold "as-is, where-is", with all faults and damage. Study the photos, damage notes and documents listed for each vehicle, and contact us if you want to inspect a vehicle before bidding.'
     },
     {
-      id: 'purchase-terms',
-      title: '7. Vehicle Purchase Terms & Title Transfer',
-      icon: FileText,
-      content:
-        'Title transfer documents (RTO Form 29, 30, Bank NOC, Insurance Endorsements) are processed following full financial clearance. The buyer assumes all post-sale statutory transfer responsibilities and road tax compliances within the jurisdiction.'
-    },
-    {
-      id: 'lifting',
-      title: '8. Vehicle Lifting & Yard Storage Guidelines',
+      id: 'handover',
+      title: '8. Receipt, Documents & Handover',
       icon: Truck,
       content:
-        'Winning bidders receive 5 business days of complimentary holding storage at our regional logistics yard starting from payment clearance. Digital QR Gate Passes are issued upon payment validation. Vehicles not lifted within 5 business days incur yard storage demurrage of ₹500 per calendar day.'
+        'After the payment is confirmed you can print the receipt from your dashboard. Our team then contacts you to hand over the vehicle and its documents. The buyer is responsible for the RTO transfer after handover.'
     },
     {
       id: 'charges',
-      title: '9. Applicable Fees & Charges Schedule',
+      title: '9. Fees & Taxes',
       icon: Receipt,
       content:
-        'Standard commercial transaction charges applicable across all auction purchases:',
-      hasChargesTable: true
+        'The amount to pay is shown on your order. If any additional fee or tax applies to a vehicle, it is stated on the auction page before bidding.'
     }
   ];
 
@@ -91,11 +88,11 @@ export default function BiddingRulesPage({ onRegisterClick }) {
           <div className="rules-hero-inner">
             <span className="rules-pill">
               <ShieldAlert size={14} />
-              OFFICIAL BYLAWS & OPERATIONAL GUIDELINES
+              BIDDING RULES
             </span>
             <h1 className="rules-title">Bidding Rules & Regulations</h1>
             <p className="rules-subtitle">
-              Comprehensive guidelines governing participant eligibility, live auction increments, escrow settlements, and vehicle handover across the Salvex Auction marketplace.
+              How bidding, payment and handover work on Salvex Auction.
             </p>
           </div>
         </div>
@@ -119,79 +116,6 @@ export default function BiddingRulesPage({ onRegisterClick }) {
 
                     <p className="rule-text">{rule.content}</p>
 
-                    {/* Table: Minimum Bid Increments */}
-                    {rule.hasTable && (
-                      <div className="rule-table-container">
-                        <table className="rule-data-table">
-                          <thead>
-                            <tr>
-                              <th>Current Bid Value Bracket</th>
-                              <th>Mandatory Minimum Increment</th>
-                              <th>Anti-Sniping Buffer</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr>
-                              <td>₹1,00,000 – ₹10,00,000</td>
-                              <td><strong>₹25,000</strong></td>
-                              <td>60 Seconds</td>
-                            </tr>
-                            <tr>
-                              <td>₹10,00,001 – ₹50,00,000</td>
-                              <td><strong>₹50,000</strong></td>
-                              <td>60 Seconds</td>
-                            </tr>
-                            <tr>
-                              <td>₹50,00,001 – ₹2,00,00,000</td>
-                              <td><strong>₹1,00,000</strong></td>
-                              <td>120 Seconds</td>
-                            </tr>
-                            <tr>
-                              <td>Above ₹2,00,00,000 (Exotics & Commercial)</td>
-                              <td><strong>₹2,00,000</strong></td>
-                              <td>120 Seconds</td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-
-                    {/* Table: Applicable Charges */}
-                    {rule.hasChargesTable && (
-                      <div className="rule-table-container">
-                        <table className="rule-data-table">
-                          <thead>
-                            <tr>
-                              <th>Fee Item</th>
-                              <th>Applicable Rate</th>
-                              <th>Levied By</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr>
-                              <td>Buyer's Premium (Success Fee)</td>
-                              <td><strong>2.5% of Winning Bid</strong></td>
-                              <td>Salvex Auction Platform</td>
-                            </tr>
-                            <tr>
-                              <td>Yard Logistics & Gate Pass Fee</td>
-                              <td><strong>₹15,000 – ₹25,000</strong> (Lot specific)</td>
-                              <td>Regional Stockyard Operator</td>
-                            </tr>
-                            <tr>
-                              <td>Goods & Services Tax (GST)</td>
-                              <td><strong>18%</strong> on Platform & Yard Fees only</td>
-                              <td>Statutory Requirement (Govt. of India)</td>
-                            </tr>
-                            <tr>
-                              <td>Post-Deadline Storage Demurrage</td>
-                              <td><strong>₹500 / day</strong> (Post 5 days free)</td>
-                              <td>Holding Yard Facility</td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
                   </div>
                 );
               })}
@@ -206,11 +130,11 @@ export default function BiddingRulesPage({ onRegisterClick }) {
                 </div>
                 <h3>Quick Reference</h3>
                 <ul className="rules-quick-list">
-                  <li><strong>KYC:</strong> PAN & ID verification mandatory before bidding.</li>
-                  <li><strong>Bids:</strong> Non-cancellable legally binding contracts.</li>
-                  <li><strong>EMD:</strong> 10% payable within 24h of winning lot.</li>
-                  <li><strong>Balance:</strong> 90% payable within 48h to Escrow.</li>
-                  <li><strong>Lifting:</strong> 5 business days complimentary yard storage.</li>
+                  <li><strong>KYC:</strong> approved ID documents needed before bidding.</li>
+                  <li><strong>Bids:</strong> at least the starting price, then higher than the current bid.</li>
+                  <li><strong>Binding:</strong> bids cannot be withdrawn.</li>
+                  <li><strong>After winning:</strong> our team contacts you to complete the purchase.</li>
+                  <li><strong>Handover:</strong> arranged by our team.</li>
                 </ul>
 
                 <button
@@ -226,7 +150,7 @@ export default function BiddingRulesPage({ onRegisterClick }) {
               <div className="rules-disclaimer-box">
                 <AlertTriangle size={18} className="text-warning" />
                 <p>
-                  <strong>Disclaimer:</strong> Specific consignor lots (e.g. Court Liquidation, Special NBFC portfolios) may carry tailored supplementary conditions posted in the lot inspection documents.
+                  <strong>Note:</strong> Some vehicles may carry extra conditions from the owner (for example a bank or insurer). These are shown on the auction page.
                 </p>
               </div>
             </aside>

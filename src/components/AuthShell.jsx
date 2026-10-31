@@ -1,27 +1,35 @@
 import React from 'react';
-import { ShieldCheck, AlertCircle, CheckCircle2, Info } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Info } from 'lucide-react';
 import SalvexLogo from './SalvexLogo';
 import './LoginPage.css';
 import './AuthPages.css';
+import './AuthShell.css';
 
-/** The card layout shared by the sign-in, registration, verification and password pages. */
-export default function AuthShell({ title, subtitle, children, footer }) {
+/**
+ * The layout shared by the sign-in, registration, verification and password pages: a plain brand
+ * panel with the logo (wide screens only) beside the form card.
+ */
+export default function AuthShell({ title, subtitle, children, footer, className = '' }) {
   return (
-    <div className="salvex-login-page">
-      <div className="login-card-container">
-        <div className="login-header">
-          <div className="login-logo-wrap">
-            <SalvexLogo variant="light" height={36} />
+    <div className={`salvex-login-page auth-split ${className}`.trim()}>
+      <div className="auth-frame">
+        <aside className="auth-aside" aria-hidden="true">
+          <div className="auth-aside-glow" />
+          <SalvexLogo variant="light" height={96} />
+          <p className="auth-aside-name">Salvex Auction</p>
+        </aside>
+
+        <div className="login-card-container">
+          <div className="login-header">
+            <div className="login-logo-wrap">
+              <SalvexLogo variant="light" height={36} />
+            </div>
+            <h1 className="login-title">{title}</h1>
+            {subtitle && <p className="login-subtitle">{subtitle}</p>}
           </div>
-          <span className="login-badge-secure">
-            <ShieldCheck size={13} />
-            Secure sign-in
-          </span>
-          <h1 className="login-title">{title}</h1>
-          {subtitle && <p className="login-subtitle">{subtitle}</p>}
+          {children}
+          {footer && <div className="login-footer">{footer}</div>}
         </div>
-        {children}
-        {footer && <div className="login-footer">{footer}</div>}
       </div>
     </div>
   );

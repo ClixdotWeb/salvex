@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { mockApi, USERS, open } from './helpers/mockApi';
 
-const PROTECTED = ['/dashboard', '/seller/dashboard', '/admin', '/payment/won-101', '/lifting/won-101'];
+const PROTECTED = ['/dashboard', '/seller/dashboard', '/admin', '/orders/order-1/receipt', '/payment/won-101'];
 
 test.describe('protected pages', () => {
   let api;
@@ -21,8 +21,8 @@ test.describe('protected pages', () => {
     api.slowMe(1500);
     await page.goto('/admin');
     await expect(page.getByText('Checking your session…').first()).toBeVisible();
-    await expect(page.locator('text=SALVEX COMMAND CENTER')).toHaveCount(0);   // not rendered while loading
-    await expect(page.locator('text=SALVEX COMMAND CENTER')).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('.adm-brand')).toHaveCount(0);   // not rendered while loading
+    await expect(page.locator('.adm-brand')).toBeVisible({ timeout: 15000 });
     await expect(page).toHaveURL(/\/admin$/);
   });
 
@@ -59,7 +59,7 @@ test.describe('protected pages', () => {
     await page.goto('/admin');
     await page.reload();
     await expect(page).toHaveURL(/\/admin$/);
-    await expect(page.locator('text=SALVEX COMMAND CENTER')).toBeVisible();
+    await expect(page.locator('.adm-brand')).toBeVisible();
   });
 
   test('there are no redirect loops: the address settles and stays put', async ({ page }) => {

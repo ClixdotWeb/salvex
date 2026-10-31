@@ -23,6 +23,13 @@ async def health_check():
     }
 
 
+@router.get("/site-config", summary="Public switches the website needs (no secrets)")
+async def site_config():
+    from app.core.config import settings
+    return {"online_payment": settings.ONLINE_PAYMENT_FLOW, "seller_accounts": settings.SELLER_ACCOUNTS,
+            "mobile_otp": settings.MOBILE_OTP_REQUIRED}
+
+
 @router.get(
     "/ready",
     summary="Readiness Probe",

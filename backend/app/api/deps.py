@@ -22,6 +22,7 @@ from app.core.errors import ApiError
 from app.core.security import decode_access_token, verify_csrf_token
 from app.db.session import get_db
 from app.models.user import AuthSession, User
+from app.services.auth_service import finished_sign_up
 
 http_bearer_scheme = HTTPBearer(auto_error=False)
 
@@ -78,7 +79,7 @@ async def get_auth_context_optional(
         await db.commit()
         return None
 
-    if not user.is_active or not user.is_email_verified:
+    if not user.is_active or not finished_sign_up(user):
         return None
 
     if (now - session.last_seen_at).total_seconds() >= settings.SESSION_TOUCH_INTERVAL_SECONDS:
@@ -117,6 +118,33 @@ async def require_csrf(request: Request, ctx: AuthContext = Depends(get_auth_con
     if ctx.via_cookie and not verify_csrf_token(str(ctx.session.id), request.headers.get("x-csrf-token")):
         raise ApiError(403, "Security check failed. Please refresh the page and try again.", "csrf_failed")
     return ctx
+
+
+async def require_verified_kyc(current_user: User = Depends(get_current_user)) -> User:
+    """
+    For actions that need a verified identity (for example bidding). Like the role, the KYC status is
+    read from the database on every request, so an approval or rejection applies immediately.
+    """
+    if current_user.kyc_status != "verified":
+        raise ApiError(403, "Your identity must be verified (KYC) before you can do this.", "kyc_required")
+    return current_user
+
+
+async def require_verified_mobile(current_user: User = Depends(get_current_user)) -> User:
+    """
+    For bidding: the mobile number must be confirmed with the SMS code (when that is switched on), because
+    the Salvex team calls winning bidders on it. Accounts made before SMS codes confirm it from the dashboard.
+    """
+    if settings.MOBILE_OTP_REQUIRED and not current_user.is_mobile_verified:
+        raise ApiError(403, "Please verify your mobile number before you bid.", "mobile_not_verified")
+    return current_user
+
+
+async def require_verified_email(current_user: User = Depends(get_current_user)) -> User:
+    """For bidding: buyers who signed up with the SMS code confirm their email from the dashboard first."""
+    if not current_user.is_email_verified:
+        raise ApiError(403, "Please verify your email address before you bid.", "email_not_verified")
+    return current_user
 
 
 def require_role(allowed_roles: List[str]):

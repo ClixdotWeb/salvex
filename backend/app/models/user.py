@@ -1,7 +1,8 @@
 import uuid
 from datetime import datetime, timezone
+import re
 from typing import Optional
-from sqlalchemy import String, DateTime, ForeignKey, Table, Column, Enum as SQLEnum
+from sqlalchemy import Index, Integer, Sequence, String, DateTime, ForeignKey, Table, Column, Enum as SQLEnum, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
@@ -16,12 +17,23 @@ user_watchlist = Table(
 )
 
 
+def format_buyer_id(number) -> str:
+    return f"SLX-{int(number):06d}" if number else ""
+
+
+def parse_buyer_id(text_value: str):
+    """'SLX-000123', 'slx123', '000123' or '123' -> 123; anything else -> None."""
+    m = re.fullmatch(r"\s*(?:slx[-\s]?)?0*(\d{1,9})\s*", text_value or "", flags=re.IGNORECASE)
+    return int(m.group(1)) if m and int(m.group(1)) > 0 else None
+
+
 class User(Base):
     """
     User entity representing institutional bidders, consignor sellers, and platform administrators.
     Preserves legacy Mongoose enum values and role semantics.
     """
     __tablename__ = "users"
+    __table_args__ = (Index("uq_users_buyer_number", "buyer_number", unique=True),)
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -30,6 +42,15 @@ class User(Base):
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
+    # Readable Buyer ID: 1 -> "SLX-000001" (see buyer_id). Taken from a sequence when the row is inserted.
+    buyer_number: Mapped[int] = mapped_column(
+        Integer, Sequence("buyer_number_seq"), server_default=text("nextval('buyer_number_seq')"), nullable=False
+    )
+
+    @property
+    def buyer_id(self) -> str:
+        return format_buyer_id(self.buyer_number)
+
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     
     role: Mapped[str] = mapped_column(
@@ -57,12 +78,35 @@ class User(Base):
         insert_default=False,
         nullable=False
     )
+    # Set when the user enters the code sent by SMS to `mobile`. Changing the number clears it.
+    is_mobile_verified: Mapped[bool] = mapped_column(
+        default=False,
+        server_default="false",
+        insert_default=False,
+        nullable=False
+    )
     is_active: Mapped[bool] = mapped_column(
         default=True,
         server_default="true",
         insert_default=True,
         nullable=False
     )
+
+    # Suspension record. A suspended account has is_active = false (which is what blocks access); these
+    # columns say why, who did it and when. All three are NULL for an account that was never suspended.
+    suspended_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    suspension_reason: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    suspended_by_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="SET NULL", name="fk_users_suspended_by_id_users"),
+        nullable=True
+    )
+
+    # Payment discipline (no advance deposit is taken, so non-payment has consequences):
+    # every unpaid win (default) is counted; bidding is blocked until `bidding_blocked_until`
+    # (a far-future date = permanently). Login still works so the user can see why.
+    payment_defaults: Mapped[int] = mapped_column(default=0, server_default="0", insert_default=0, nullable=False)
+    bidding_blocked_until: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

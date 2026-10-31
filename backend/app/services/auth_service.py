@@ -19,22 +19,28 @@ from app.core.security import (
     verify_password,
     verify_token_hash,
 )
+from app.core.errors import ApiError
 from app.models.user import AuthSession, AuthToken, User
 from app.services.email import BaseEmailService
+from app.services.sms import BaseSmsService, get_sms_service
 
 logger = logging.getLogger("salvex.auth")
 
 PURPOSE_VERIFY = "email_verification"
 PURPOSE_RESET = "password_reset"
+PURPOSE_MOBILE = "mobile_verification"
 PUBLIC_ROLES = ("bidder", "seller")  # roles that may be chosen at registration (never "admin")
 
 ERR_INVALID_CREDENTIALS = "Invalid email or password. Please check your credentials."
 ERR_SUSPENDED = "This account is suspended. Please contact Salvex support."
 ERR_UNVERIFIED = "Please verify your email address before logging in."
+ERR_UNVERIFIED_MOBILE = "Please verify your mobile number to finish creating your account."
 GENERIC_RESEND_MESSAGE = "If this email is registered, a new code has been sent."
 MSG_VERIFY_FAILED = "Invalid or expired verification code. {n} attempt(s) remaining."
 MSG_RESET_FAILED = "Invalid or expired reset code. {n} attempt(s) remaining."
 MSG_LOCKED = "Too many failed attempts. Please request a new code."
+MSG_MOBILE_FAILED = "Invalid or expired mobile code. {n} attempt(s) remaining."
+MSG_MOBILE_LOCKED = "Too many failed attempts on the mobile code. Please request a new SMS code."
 FAKE_ATTEMPT_TTL_SECONDS = 600
 
 
@@ -50,6 +56,14 @@ class CodeResult(str, Enum):
 class CodeCheck:
     result: CodeResult
     remaining: int = 0
+
+
+def finished_sign_up(user: User) -> bool:
+    """
+    The account can sign in once its sign-up code was entered: the SMS code when mobile verification is
+    on (the email is confirmed later from the dashboard), otherwise the email code.
+    """
+    return user.is_email_verified or (settings.MOBILE_OTP_REQUIRED and user.is_mobile_verified)
 
 
 def _normalize_email(email: str) -> str:
@@ -70,7 +84,8 @@ def _fake_key(purpose: str, email: str) -> str:
 
 
 class AuthService:
-    def __init__(self, db: AsyncSession, email_service: BaseEmailService, *, defer_email: bool = False):
+    def __init__(self, db: AsyncSession, email_service: BaseEmailService, *, defer_email: bool = False,
+                 sms_service: Optional[BaseSmsService] = None):
         """
         defer_email=True queues emails and sends them only when `send_pending_emails()` is
         called (the API does this in a background task AFTER the database commit). That way no
@@ -80,7 +95,14 @@ class AuthService:
         self.db = db
         self.email_service = email_service
         self.defer_email = defer_email
+        self._sms_service = sms_service
         self._pending: List[Callable[[], Awaitable[object]]] = []
+
+    @property
+    def sms_service(self) -> BaseSmsService:
+        if self._sms_service is None:
+            self._sms_service = get_sms_service()
+        return self._sms_service
 
     # ------------------------------------------------------------------ helpers
     async def _emit(self, factory: Callable[[], Awaitable[object]]) -> None:
@@ -173,6 +195,106 @@ class AuthService:
         await self.db.flush()
         return CodeCheck(CodeResult.OK)
 
+    @staticmethod
+    def _signed_up(user: User) -> bool:
+        return finished_sign_up(user)
+
+    # ------------------------------------------------------------------ mobile (SMS) codes
+    async def _send_mobile_code(self, user: User) -> None:
+        """Issue a fresh SMS code for the user's current mobile number (when SMS codes are switched on)."""
+        if not settings.MOBILE_OTP_REQUIRED or user.is_mobile_verified or not user.mobile:
+            return
+        otp = await self._issue_code(user, PURPOSE_MOBILE)
+        mobile = user.mobile
+        await self._emit(lambda: self.sms_service.send_verification_otp(mobile, otp))
+
+    async def verify_signup_mobile_public(self, email: str, mobile_otp: str) -> Tuple[bool, str]:
+        """
+        Sign-up with mobile verification on: the SMS code finishes creating the account. Every failure
+        has the same shape for registered and unregistered emails.
+        """
+        clean_email = _normalize_email(email)
+        user = await self._get_user_by_email(clean_email)
+        if settings.MOBILE_OTP_REQUIRED and user is not None and user.is_active and not self._signed_up(user):
+            check = await self._check_code(user, PURPOSE_MOBILE, mobile_otp)
+            if check.result == CodeResult.OK:
+                user.is_mobile_verified = True
+                await self.db.flush()
+                fake_attempts.clear(_fake_key(PURPOSE_MOBILE, clean_email))
+                return True, "Mobile number verified."
+            if check.result == CodeResult.WRONG:
+                return False, MSG_MOBILE_FAILED.format(n=check.remaining)
+            if check.result == CodeResult.LOCKED:
+                fake_attempts.exhaust(_fake_key(PURPOSE_MOBILE, clean_email), settings.OTP_MAX_ATTEMPTS)
+                return False, MSG_MOBILE_LOCKED
+            # NO_CODE / EXPIRED fall through and look like any other failed attempt
+        remaining = fake_attempts.attempt(
+            _fake_key(PURPOSE_MOBILE, clean_email), settings.OTP_MAX_ATTEMPTS, FAKE_ATTEMPT_TTL_SECONDS
+        )
+        if remaining < 0:
+            return False, MSG_MOBILE_LOCKED
+        return False, MSG_MOBILE_FAILED.format(n=remaining)
+
+    async def send_mobile_code_signed_in(self, user: User, new_mobile: Optional[str] = None) -> None:
+        """
+        For a signed-in user (for example an account made before SMS codes existed): send a code to the
+        current number, or to a new number, which replaces the old one and must then be confirmed.
+        """
+        if not settings.MOBILE_OTP_REQUIRED:
+            raise ApiError(409, "Mobile verification is not switched on.", "mobile_otp_off")
+        if new_mobile is not None and new_mobile.strip() and new_mobile.strip() != user.mobile:
+            user.mobile = new_mobile.strip()
+            user.is_mobile_verified = False
+            await self.db.flush()
+        if user.is_mobile_verified:
+            raise ApiError(409, "Your mobile number is already verified.", "mobile_already_verified")
+        if not user.mobile:
+            raise ApiError(422, "Please enter your mobile number.", "mobile_missing")
+        if await self._cooldown_active(user, PURPOSE_MOBILE):
+            raise ApiError(429, f"Please wait {settings.OTP_RESEND_COOLDOWN_SECONDS} seconds before asking "
+                                "for a new code.", "code_cooldown")
+        await self._send_mobile_code(user)
+
+    async def verify_mobile_signed_in(self, user: User, otp: str) -> None:
+        """Confirm the signed-in user's mobile number with the SMS code (raises ApiError on failure)."""
+        if user.is_mobile_verified:
+            return
+        check = await self._check_code(user, PURPOSE_MOBILE, otp)
+        if check.result == CodeResult.OK:
+            user.is_mobile_verified = True
+            await self.db.flush()
+            return
+        if check.result == CodeResult.WRONG:
+            raise ApiError(400, MSG_MOBILE_FAILED.format(n=check.remaining), "invalid_mobile_code")
+        if check.result == CodeResult.LOCKED:
+            raise ApiError(400, MSG_MOBILE_LOCKED, "mobile_code_locked")
+        raise ApiError(400, "This code has expired. Please request a new SMS code.", "invalid_mobile_code")
+
+    async def send_email_code_signed_in(self, user: User) -> None:
+        """For a signed-in user who signed up with the SMS code: email a code to confirm the address."""
+        if user.is_email_verified:
+            raise ApiError(409, "Your email address is already verified.", "email_already_verified")
+        if await self._cooldown_active(user, PURPOSE_VERIFY):
+            raise ApiError(429, f"Please wait {settings.OTP_RESEND_COOLDOWN_SECONDS} seconds before asking "
+                                "for a new code.", "code_cooldown")
+        otp = await self._issue_code(user, PURPOSE_VERIFY)
+        await self._emit(lambda: self.email_service.send_verification_otp(user.email, otp, user.name))
+
+    async def verify_email_signed_in(self, user: User, otp: str) -> None:
+        """Confirm the signed-in user's email address with the emailed code (raises ApiError on failure)."""
+        if user.is_email_verified:
+            return
+        check = await self._check_code(user, PURPOSE_VERIFY, otp)
+        if check.result == CodeResult.OK:
+            user.is_email_verified = True
+            await self.db.flush()
+            return
+        if check.result == CodeResult.WRONG:
+            raise ApiError(400, MSG_VERIFY_FAILED.format(n=check.remaining), "invalid_code")
+        if check.result == CodeResult.LOCKED:
+            raise ApiError(400, MSG_LOCKED, "code_locked")
+        raise ApiError(400, "This code has expired. Please request a new code.", "invalid_code")
+
     # ------------------------------------------------------------------ registration
     async def register_user(
         self,
@@ -204,9 +326,16 @@ class AuthService:
         self.db.add(user)
         await self.db.flush()
 
+        await self._send_signup_code(user)
+        return user, None
+
+    async def _send_signup_code(self, user: User) -> None:
+        """One code finishes sign-up: by SMS when mobile verification is on, otherwise by email."""
+        if settings.MOBILE_OTP_REQUIRED and user.mobile:
+            await self._send_mobile_code(user)
+            return
         otp = await self._issue_code(user, PURPOSE_VERIFY)
         await self._emit(lambda: self.email_service.send_verification_otp(user.email, otp, user.name))
-        return user, None
 
     async def register_public(
         self,
@@ -220,11 +349,14 @@ class AuthService:
     ) -> None:
         """
         Registration that looks the same to the caller whether or not the email is already known.
-          - new email                  -> create the account, email a verification code
-          - existing UNVERIFIED email  -> the newest registration wins (name, password, role are
-                                          replaced) and a fresh code is emailed. Whoever does not
-                                          own the mailbox can never verify, so cannot take over
-                                          an address by pre-registering it.
+          - new email                  -> create the account, send the sign-up code (SMS when
+                                          mobile verification is on, otherwise email)
+          - existing, sign-up NOT finished -> the newest registration wins (name, password, role,
+                                          mobile are replaced) and a fresh code is sent.
+                                          With SMS sign-up, someone could finish sign-up on an email
+                                          they do not own; the real owner gets the "account exists"
+                                          email on their next attempt and takes the account back with
+                                          a password reset (the emailed code also confirms the address).
           - existing VERIFIED email    -> nothing changes; the owner gets a "you already have an
                                           account" email.
         """
@@ -235,18 +367,18 @@ class AuthService:
             await self.register_user(name, clean_email, password, role, mobile, organization)
             return
 
-        if user.is_active and not user.is_email_verified and role in PUBLIC_ROLES:
+        if user.is_active and not self._signed_up(user) and role in PUBLIC_ROLES:
             user.name = name.strip()
             user.password_hash = await asyncio.to_thread(hash_password, password)
             user.role = role
             user.mobile = mobile.strip()
+            user.is_mobile_verified = False   # the number may have changed, so it is confirmed again
             user.organization = organization.strip()
             await self.db.flush()
             # Always issue a NEW code (the resend cooldown does not apply here): the single live
             # code must belong to the newest submission, so an older code can never verify an
             # account that now carries a newer password. (Request volume is bounded by the rate limiter.)
-            otp = await self._issue_code(user, PURPOSE_VERIFY)
-            await self._emit(lambda: self.email_service.send_verification_otp(user.email, otp, user.name))
+            await self._send_signup_code(user)
             return
 
         # Existing verified (or suspended) account: spend the same time as a real registration.
@@ -320,7 +452,13 @@ class AuthService:
             return True, GENERIC_RESEND_MESSAGE
         if purpose == PURPOSE_VERIFY and user.is_email_verified:
             return True, GENERIC_RESEND_MESSAGE
+        if purpose == PURPOSE_MOBILE and (not settings.MOBILE_OTP_REQUIRED or self._signed_up(user)):
+            return True, GENERIC_RESEND_MESSAGE  # after sign-up, codes are asked for while signed in
         if await self._cooldown_active(user, purpose):
+            return True, GENERIC_RESEND_MESSAGE
+
+        if purpose == PURPOSE_MOBILE:
+            await self._send_mobile_code(user)
             return True, GENERIC_RESEND_MESSAGE
 
         otp = await self._issue_code(user, purpose)
@@ -378,6 +516,26 @@ class AuthService:
         await self.db.execute(stmt)
 
     # ------------------------------------------------------------------ login
+    async def start_session_after_verification(
+        self, email: str, user_agent: Optional[str] = None
+    ) -> Tuple[User, str, AuthSession]:
+        """
+        Sign the user in straight after a SUCCESSFUL email verification (call only after
+        verify_email_public returned success). Entering the emailed code proves the person owns the
+        mailbox, which is the same proof a password reset relies on. Same session rules as login.
+        """
+        user = await self._get_user_by_email(_normalize_email(email))
+        if user is None or not user.is_active or not self._signed_up(user):
+            raise RuntimeError("start_session_after_verification called without a verified, active user")
+        session = await self._create_session(user, user_agent)
+        token = create_access_token(
+            subject=str(user.id),
+            role=user.role,
+            expires_delta=session.expires_at - session.created_at,
+            session_id=str(session.id),
+        )
+        return user, token, session
+
     async def authenticate_user_with_session(
         self,
         identifier: str,
@@ -398,8 +556,8 @@ class AuthService:
             return None, None, None, ERR_INVALID_CREDENTIALS
         if not user.is_active:
             return None, None, None, ERR_SUSPENDED
-        if not user.is_email_verified:
-            return None, None, None, ERR_UNVERIFIED
+        if not self._signed_up(user):
+            return None, None, None, ERR_UNVERIFIED_MOBILE if settings.MOBILE_OTP_REQUIRED and user.mobile else ERR_UNVERIFIED
 
         session = await self._create_session(user, user_agent)
         token = create_access_token(
@@ -423,6 +581,10 @@ class AuthService:
 
     async def _apply_new_password(self, user: User, new_password: str) -> None:
         user.password_hash = await asyncio.to_thread(hash_password, new_password)
+        if settings.MOBILE_OTP_REQUIRED and finished_sign_up(user):
+            # SMS sign-up: the account exists but the email may not be confirmed yet. The reset code came
+            # by email, so the address is confirmed (this is also how a real owner takes an address back).
+            user.is_email_verified = True
         await self._invalidate_unused_codes(user.id, PURPOSE_RESET)
         await self.revoke_all_sessions(user.id, reason="password_reset")  # every device is signed out
         await self.db.flush()

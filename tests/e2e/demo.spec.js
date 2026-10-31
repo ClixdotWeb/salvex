@@ -18,7 +18,7 @@ test.describe('developer demo screens (explicitly enabled)', () => {
 
     await section.getByRole('button', { name: 'Sample admin screens' }).click();
     await expect(page).toHaveURL(/\/admin$/);
-    await expect(page.locator('text=SALVEX COMMAND CENTER')).toBeVisible();
+    await expect(page.locator('.adm-brand')).toContainText('Salvex Admin');
     await expect(page.getByText('Demo screens, not signed in')).toBeVisible();
 
     // no sign-in call was made, and the backend still considers the visitor anonymous

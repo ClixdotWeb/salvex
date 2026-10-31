@@ -1,0 +1,1066 @@
+/* ==========================================================================
+   VEHICLE INSURANCE SERVICES
+   Matches the site: dark navy hero, blue accent, light bordered cards, dark CTA.
+   ========================================================================== */
+
+.ins-page {
+  --ins-blue: var(--color-auction-red, #075BFF);
+  --ins-blue-hover: var(--color-auction-red-hover, #0048D9);
+  --ins-blue-soft: #EEF4FF;
+  --ins-navy: #070B14;
+  --ins-navy-2: #0B1220;
+  --ins-ink: #0B1220;
+  --ins-text: #475569;
+  --ins-muted: #64748B;
+  --ins-line: #E5ECF5;
+  --ins-bg: #F8FAFC;
+
+  font-family: var(--font-family, 'Inter', sans-serif);
+  color: var(--ins-ink);
+  background: var(--ins-bg);
+  overflow-x: clip;
+}
+
+.ins-page *,
+.ins-page *::before,
+.ins-page *::after {
+  box-sizing: border-box;
+}
+
+.ins-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+.ins-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---------- Buttons ---------- */
+.ins-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 24px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.ins-btn svg {
+  transition: transform 0.2s ease;
+}
+
+.ins-btn:hover svg {
+  transform: translateX(3px);
+}
+
+.ins-btn:focus-visible,
+.ins-card-link:focus-visible {
+  outline: 2px solid var(--ins-blue);
+  outline-offset: 3px;
+}
+
+.ins-btn-primary {
+  background: var(--ins-blue);
+  color: #FFFFFF;
+  box-shadow: 0 8px 24px -8px rgba(7, 91, 255, 0.6);
+}
+
+.ins-btn-primary:hover {
+  background: var(--ins-blue-hover);
+}
+
+.ins-btn-ghost {
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.ins-btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.45);
+}
+
+/* ---------- Hero ---------- */
+.ins-hero {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--ins-navy);
+  color: #FFFFFF;
+  padding: 196px 0 96px;
+}
+
+.ins-hero-glow {
+  position: absolute;
+  right: -10%;
+  top: -20%;
+  width: 760px;
+  height: 760px;
+  background: radial-gradient(circle, rgba(7, 91, 255, 0.3) 0%, rgba(7, 91, 255, 0) 65%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.ins-hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 64px;
+  align-items: center;
+}
+
+.ins-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(7, 91, 255, 0.14);
+  border: 1px solid rgba(7, 91, 255, 0.35);
+  color: #9DBBFF;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 22px;
+}
+
+.ins-title {
+  margin: 0 0 18px;
+  font-size: clamp(36px, 5vw, 60px);
+  font-weight: 800;
+  line-height: 1.06;
+  letter-spacing: -0.035em;
+  color: #FFFFFF;
+  text-wrap: balance;
+}
+
+.ins-subtitle {
+  margin: 0 0 32px;
+  max-width: 560px;
+  font-size: 17.5px;
+  line-height: 1.65;
+  color: #94A3B8;
+}
+
+.ins-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* Glass card listing the services */
+.ins-hero-card {
+  justify-self: end;
+  width: 100%;
+  max-width: 420px;
+  padding: 26px;
+  border-radius: 22px;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.03));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+}
+
+.ins-hero-card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 18px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ins-hero-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--ins-blue);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ins-hero-card-label {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.ins-hero-card ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ins-hero-card li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  font-size: 14.5px;
+  color: #CBD5E1;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+}
+
+.ins-hero-card li:last-child {
+  border-bottom: 0;
+}
+
+.ins-hero-card li svg {
+  color: #7FA6FF;
+  flex-shrink: 0;
+}
+
+/* ---------- Section heads ---------- */
+.ins-section-head {
+  margin-bottom: 40px;
+}
+
+.ins-eyebrow {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ins-blue);
+}
+
+.ins-heading {
+  margin: 0;
+  font-size: clamp(28px, 3.4vw, 42px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: var(--ins-ink);
+}
+
+/* ---------- Services grid ---------- */
+.ins-services {
+  padding: 96px 0 88px;
+  scroll-margin-top: 100px;
+}
+
+.ins-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.ins-card {
+  display: flex;
+  flex-direction: column;
+  padding: 26px;
+  min-height: 220px;
+  background: #FFFFFF;
+  border: 1px solid var(--ins-line);
+  border-radius: 20px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.ins-card:hover {
+  border-color: #BFD4FF;
+  box-shadow: 0 18px 40px -16px rgba(7, 91, 255, 0.25);
+  transform: translateY(-4px);
+}
+
+.ins-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: auto;
+}
+
+.ins-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: var(--ins-blue-soft);
+  color: var(--ins-blue);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.ins-card:hover .ins-icon {
+  background: var(--ins-blue);
+  color: #FFFFFF;
+}
+
+.ins-num {
+  font-size: 13px;
+  font-weight: 700;
+  color: #94A3B8;
+  font-variant-numeric: tabular-nums;
+}
+
+.ins-card-title {
+  margin: 28px 0 14px;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--ins-ink);
+}
+
+.ins-card-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  min-height: 32px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ins-blue);
+  text-decoration: none;
+  border-radius: 6px;
+}
+
+.ins-card-link svg {
+  transition: transform 0.2s ease;
+}
+
+.ins-card-link:hover svg {
+  transform: translateX(3px);
+}
+
+/* ---------- Process ---------- */
+.ins-process {
+  padding: 88px 0;
+  background: #FFFFFF;
+  border-top: 1px solid var(--ins-line);
+  border-bottom: 1px solid var(--ins-line);
+}
+
+.ins-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  counter-reset: none;
+}
+
+.ins-step {
+  position: relative;
+  padding: 28px;
+  border-radius: 20px;
+  background: var(--ins-bg);
+  border: 1px solid var(--ins-line);
+}
+
+.ins-step-num {
+  position: absolute;
+  top: 24px;
+  right: 26px;
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: #E2E8F0;
+}
+
+.ins-step-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--ins-blue);
+  color: #FFFFFF;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 22px;
+}
+
+.ins-step h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ins-ink);
+}
+
+.ins-step p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ins-text);
+}
+
+.ins-note {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin: 28px 0 0;
+  padding: 18px 20px;
+  border-radius: 14px;
+  background: var(--ins-blue-soft);
+  border: 1px solid #D6E4FF;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: #1E3A8A;
+}
+
+.ins-note svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--ins-blue);
+}
+
+/* ---------- CTA ---------- */
+.ins-cta {
+  padding: 88px 0 104px;
+}
+
+.ins-cta-box {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: 24px;
+  padding: 48px 52px;
+  background: linear-gradient(135deg, var(--ins-navy) 0%, var(--ins-navy-2) 100%);
+  color: #FFFFFF;
+}
+
+.ins-cta-glow {
+  position: absolute;
+  right: -120px;
+  top: -160px;
+  width: 480px;
+  height: 480px;
+  background: radial-gradient(circle, rgba(7, 91, 255, 0.4) 0%, rgba(7, 91, 255, 0) 65%);
+  z-index: -1;
+}
+
+.ins-cta-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.ins-cta h2 {
+  margin: 0 0 8px;
+  font-size: clamp(24px, 2.8vw, 32px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #FFFFFF;
+}
+
+.ins-cta p {
+  margin: 0;
+  max-width: 560px;
+  font-size: 16px;
+  line-height: 1.6;
+  color: #CBD5E1;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1024px) {
+  .ins-hero-grid {
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+
+  .ins-hero-card {
+    justify-self: start;
+  }
+
+  .ins-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ins-steps {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .ins-container {
+    padding: 0 16px;
+  }
+
+  .ins-hero {
+    padding: 140px 0 64px;
+  }
+
+  .ins-subtitle {
+    font-size: 16px;
+  }
+
+  .ins-hero-actions .ins-btn {
+    flex: 1 1 100%;
+  }
+
+  /* the same list appears right below in "Our Services" */
+  .ins-hero-card {
+    display: none;
+  }
+
+  .ins-services,
+  .ins-process {
+    padding: 64px 0;
+  }
+
+  .ins-section-head {
+    margin-bottom: 28px;
+  }
+
+  .ins-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .ins-card {
+    min-height: 0;
+    padding: 22px;
+  }
+
+  .ins-cta {
+    padding: 56px 0 72px;
+  }
+
+  .ins-cta-box {
+    padding: 32px 22px;
+  }
+
+  .ins-cta-inner .ins-btn {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ins-card,
+  .ins-btn svg,
+  .ins-card-link svg {
+    transition: none;
+  }
+
+  .ins-card:hover {
+    transform: none;
+  }
+}
+
+
+/* ==========================================================================
+   Header banner - same look as the Contact page banner
+   ========================================================================== */
+.ins-page .ins-hero {
+  padding: calc(var(--salvex-nav-offset, 158px) + 48px) 0 64px;
+  background:
+    radial-gradient(760px 420px at 78% 30%, rgba(30, 58, 138, 0.75), transparent 65%),
+    radial-gradient(520px 320px at 0% 100%, rgba(30, 58, 138, 0.4), transparent 60%),
+    linear-gradient(160deg, #070B14 0%, #0B1220 55%, #0E1A33 100%);
+}
+
+.ins-hero-grid-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 52px 52px;
+  -webkit-mask-image: linear-gradient(90deg, #000 0%, transparent 60%);
+  mask-image: linear-gradient(90deg, #000 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.ins-page .ins-hero-grid {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: 48px;
+}
+
+.ins-crumbs {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  font-size: 13.5px;
+  color: #94A3B8;
+}
+
+.ins-crumbs a {
+  color: #CBD5E1;
+  text-decoration: none;
+}
+
+.ins-crumbs a:hover {
+  color: #FFFFFF;
+}
+
+.ins-crumbs [aria-current] {
+  color: #9DBBFF;
+  font-weight: 600;
+}
+
+.ins-page .ins-title {
+  font-size: clamp(40px, 5vw, 64px);
+  line-height: 0.98;
+  letter-spacing: -0.045em;
+}
+
+.ins-page .ins-title span {
+  color: transparent;
+  background: linear-gradient(100deg, #3B82F6 0%, #6FA0FF 60%, #B4CCFF 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+/* rounded, slightly tilted photo with a glass chip */
+.ins-hero-visual {
+  position: relative;
+  height: 340px;
+  border-radius: 28px;
+  overflow: hidden;
+  background: #0B1220;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 40px 80px -30px rgba(0, 0, 0, 0.7), 0 0 0 8px rgba(255, 255, 255, 0.03);
+  transform: rotate(1.5deg);
+}
+
+.ins-hero-visual img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ins-hero-visual::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(11, 18, 32, 0) 50%, rgba(11, 18, 32, 0.45) 100%);
+}
+
+.ins-glass {
+  position: absolute;
+  left: 18px;
+  bottom: 18px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: #FFFFFF;
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+@media (max-width: 1024px) {
+  .ins-page .ins-hero-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 32px;
+  }
+}
+
+@media (max-width: 640px) {
+  .ins-page .ins-hero {
+    padding: calc(var(--salvex-nav-offset, 90px) + 32px) 0 48px;
+  }
+
+  .ins-hero-visual {
+    height: 200px;
+    transform: none;
+  }
+}
+
+
+/* ==========================================================================
+   Our Services - clean card system
+   White cards, soft tinted icon tiles, dark blue (#152A55) only as the accent.
+   The heading is the first tile of the grid, so 7 services fill 4 x 2.
+   ========================================================================== */
+.ins-page .ins-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.ins-intro {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 8px 12px 8px 0;
+}
+
+.ins-intro .ins-eyebrow {
+  margin: 0 0 10px;
+  color: #1D3A72;
+}
+
+.ins-intro .ins-heading {
+  margin: 0 0 14px;
+}
+
+.ins-intro-text {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #64748B;
+}
+
+.ins-page .ins-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 236px;
+  padding: 26px;
+  background: #FFFFFF;
+  border: 1px solid #E6EBF3;
+  border-radius: 26px;
+  box-shadow: 0 1px 2px rgba(11, 18, 32, 0.04), 0 18px 40px -30px rgba(11, 18, 32, 0.3);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.ins-page .ins-card:hover {
+  transform: translateY(-6px);
+  border-color: #CDD6E6;
+  box-shadow: 0 1px 2px rgba(11, 18, 32, 0.04), 0 30px 50px -30px rgba(21, 42, 85, 0.45);
+}
+
+.ins-page .ins-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: auto;
+}
+
+.ins-page .ins-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #EEF2F9;
+  color: #152A55;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.ins-page .ins-card:hover .ins-icon {
+  background: #152A55;
+  color: #FFFFFF;
+}
+
+.ins-page .ins-num {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #94A3B8;
+  font-variant-numeric: tabular-nums;
+}
+
+.ins-page .ins-card-title {
+  margin: 28px 0 18px;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: #0B1220;
+}
+
+/* bottom row: label left, round arrow right */
+.ins-page .ins-card-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  align-self: stretch;
+  padding-top: 16px;
+  border-top: 1px solid #EEF2F7;
+  color: #152A55;
+  font-size: 14.5px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.ins-arrow {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #D5DDEA;
+  color: #152A55;
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, transform 0.25s ease;
+}
+
+.ins-page .ins-card:hover .ins-arrow {
+  background: #152A55;
+  border-color: #152A55;
+  color: #FFFFFF;
+  transform: rotate(45deg);
+}
+
+.ins-page .ins-card-link:focus-visible {
+  outline: 2px solid #152A55;
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
+/* the whole card is clickable through the link */
+.ins-page .ins-card-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 26px;
+}
+
+@media (max-width: 1024px) {
+  .ins-page .ins-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .ins-page .ins-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .ins-intro {
+    padding: 0 0 8px;
+  }
+
+  .ins-page .ins-card {
+    min-height: 0;
+    padding: 22px;
+    border-radius: 22px;
+  }
+
+  .ins-page .ins-card-title {
+    margin: 20px 0 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ins-page .ins-card,
+  .ins-page .ins-icon,
+  .ins-arrow {
+    transition: none;
+  }
+
+  .ins-page .ins-card:hover {
+    transform: none;
+  }
+
+  .ins-page .ins-card:hover .ins-arrow {
+    transform: none;
+  }
+}
+
+
+/* ==========================================================================
+   Insurance process - a connected 3-step stepper (white, dark blue accent)
+   ========================================================================== */
+.ins-page .ins-process {
+  background: #FFFFFF;
+}
+
+.ins-page .ins-process .ins-eyebrow {
+  color: #1D3A72;
+}
+
+.ins-page .ins-steps {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 32px;
+  counter-reset: none;
+}
+
+.ins-page .ins-step {
+  position: relative;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* the line that joins the step circles */
+.ins-step-rail {
+  position: relative;
+  height: 64px;
+  margin-bottom: 26px;
+}
+
+.ins-step:not(:last-child) .ins-step-rail::after {
+  content: '';
+  position: absolute;
+  left: 76px;
+  right: -20px;
+  top: 50%;
+  height: 2px;
+  background: repeating-linear-gradient(90deg, #C7D2E5 0 8px, transparent 8px 14px);
+}
+
+.ins-step-dot {
+  position: relative;
+  z-index: 1;
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(140deg, #152A55 0%, #1D3A72 100%);
+  color: #FFFFFF;
+  box-shadow: 0 0 0 8px #EEF2F9, 0 16px 30px -14px rgba(21, 42, 85, 0.7);
+}
+
+.ins-page .ins-step-num {
+  position: static;
+  display: block;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  line-height: 1.4;
+  color: #1D3A72;
+}
+
+.ins-page .ins-step h3 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: #0B1220;
+}
+
+.ins-page .ins-step p {
+  margin: 0;
+  max-width: 300px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #475569;
+}
+
+/* insurer note: neutral card with a dark-blue edge */
+.ins-page .ins-note {
+  margin-top: 48px;
+  padding: 18px 22px;
+  border-radius: 16px;
+  background: #F6F8FC;
+  border: 1px solid #E6EBF3;
+  border-left: 4px solid #152A55;
+  color: #334155;
+  font-size: 14.5px;
+}
+
+.ins-page .ins-note svg {
+  color: #152A55;
+}
+
+@media (max-width: 1024px) {
+  .ins-page .ins-steps {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  /* vertical stepper: circle on the left, text beside it, dashed line down */
+  .ins-page .ins-step {
+    display: grid;
+    grid-template-columns: 64px minmax(0, 1fr);
+    column-gap: 20px;
+    padding-bottom: 32px;
+  }
+
+  .ins-step-rail {
+    grid-row: 1 / span 3;
+    height: 100%;
+    margin: 0;
+  }
+
+  .ins-step:not(:last-child) .ins-step-rail::after {
+    left: 31px;
+    right: auto;
+    top: 72px;
+    bottom: -24px;
+    width: 2px;
+    height: auto;
+    background: repeating-linear-gradient(180deg, #C7D2E5 0 8px, transparent 8px 14px);
+  }
+
+  .ins-page .ins-step-num {
+    margin-top: 6px;
+  }
+
+  .ins-page .ins-step p {
+    max-width: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .ins-page .ins-step {
+    grid-template-columns: 52px minmax(0, 1fr);
+    column-gap: 16px;
+  }
+
+  .ins-step-dot {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    box-shadow: 0 0 0 6px #EEF2F9, 0 14px 26px -14px rgba(21, 42, 85, 0.7);
+  }
+
+  .ins-step:not(:last-child) .ins-step-rail::after {
+    left: 25px;
+    top: 60px;
+  }
+
+  .ins-page .ins-step h3 {
+    font-size: 18px;
+  }
+
+  .ins-page .ins-note {
+    margin-top: 24px;
+  }
+}
+
+/* steps centred in their columns (desktop); the dotted line runs from one icon to the next */
+@media (min-width: 1025px) {
+  .ins-page .ins-step {
+    text-align: center;
+  }
+
+  .ins-step-rail {
+    display: flex;
+    justify-content: center;
+  }
+
+  .ins-step:not(:last-child) .ins-step-rail::after {
+    left: calc(50% + 46px);
+    right: calc(-50% + 14px);
+  }
+
+  .ins-page .ins-step p {
+    margin: 0 auto;
+  }
+}

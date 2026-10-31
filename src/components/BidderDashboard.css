@@ -1,0 +1,1091 @@
+/* ==========================================================================
+   BIDDER DASHBOARD – content area (all tabs)
+   Scoped to .salvex-bidder-dashboard-page so nothing here can affect other pages.
+   Uses the design tokens from index.css.
+   ========================================================================== */
+
+.salvex-bidder-dashboard-page {
+  padding-bottom: 64px;
+}
+
+.salvex-bidder-dashboard-page .dashboard-main-panel {
+  min-width: 0; /* lets long content shrink inside the grid instead of overflowing */
+}
+
+.salvex-bidder-dashboard-page .tab-pane-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.salvex-bidder-dashboard-page .dash-stats-grid,
+.salvex-bidder-dashboard-page .urgent-payment-banner {
+  margin-bottom: 0;
+}
+
+/* ---------- shared: headings, section boxes, small buttons ---------- */
+.salvex-bidder-dashboard-page .tab-pane-header h2,
+.salvex-bidder-dashboard-page .tab-pane-header-row h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-primary-navy);
+  letter-spacing: -0.01em;
+}
+
+.salvex-bidder-dashboard-page .tab-pane-header p,
+.salvex-bidder-dashboard-page .tab-pane-header-row p {
+  margin-top: 6px;
+  font-size: 14px;
+  color: var(--color-muted-gray);
+  line-height: 1.5;
+}
+
+.salvex-bidder-dashboard-page .tab-pane-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.salvex-bidder-dashboard-page .dash-section-box {
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-subtle);
+}
+
+.salvex-bidder-dashboard-page .box-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.salvex-bidder-dashboard-page .box-header-row h3 {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--color-primary-navy);
+}
+
+.salvex-bidder-dashboard-page .link-view-all {
+  background: none;
+  border: none;
+  padding: 6px 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-auction-red);
+  cursor: pointer;
+}
+
+.salvex-bidder-dashboard-page .link-view-all:hover {
+  color: var(--color-auction-red-hover);
+  text-decoration: underline;
+}
+
+.salvex-bidder-dashboard-page .salvex-btn.btn-sm {
+  padding: 8px 14px;
+  font-size: 13px;
+  min-height: 36px;
+}
+
+.salvex-bidder-dashboard-page .salvex-btn-success {
+  background-color: var(--color-success);
+  color: var(--color-white);
+  border: 1px solid var(--color-success);
+}
+
+.salvex-bidder-dashboard-page .salvex-btn-success:hover {
+  background-color: #12863A;
+}
+
+.salvex-bidder-dashboard-page img {
+  display: block;
+  max-width: 100%;
+}
+
+/* ---------- status chips (used on several tabs) ---------- */
+.salvex-bidder-dashboard-page .status-badge-chip,
+.salvex-bidder-dashboard-page .bci-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  background: #F1F5F9;
+  color: #475569;
+}
+
+/* Leading = blue, Won = green, Outbid = red, Not won = grey */
+.salvex-bidder-dashboard-page .status-badge-chip.active,
+.salvex-bidder-dashboard-page .status-badge-chip.winning,
+.salvex-bidder-dashboard-page .bci-tag.active,
+.salvex-bidder-dashboard-page .bci-tag.winning {
+  background: #EFF6FF;
+  color: #1D4ED8;
+}
+
+.salvex-bidder-dashboard-page .status-badge-chip.outbid,
+.salvex-bidder-dashboard-page .bci-tag.outbid {
+  background: #FEF2F2;
+  color: #B91C1C;
+}
+
+.salvex-bidder-dashboard-page .status-badge-chip.won,
+.salvex-bidder-dashboard-page .bci-tag.won {
+  background: #DCFCE7;
+  color: #15803D;
+}
+
+.salvex-bidder-dashboard-page .status-badge-chip.lost,
+.salvex-bidder-dashboard-page .bci-tag.lost {
+  background: #F1F5F9;
+  color: #64748B;
+}
+
+/* ==========================================================================
+   OVERVIEW – "Active Live Bids" preview rows
+   ========================================================================== */
+.salvex-bidder-dashboard-page .overview-bids-table {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.salvex-bidder-dashboard-page .bid-preview-row {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr) auto auto auto;
+  align-items: center;
+  gap: 18px;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-off-white);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.salvex-bidder-dashboard-page .bid-preview-row:hover {
+  background: var(--color-white);
+  border-color: #CBD5E1;
+  box-shadow: var(--shadow-card);
+}
+
+.salvex-bidder-dashboard-page .thumb-car {
+  width: 112px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  background: #E2E8F0;
+}
+
+.salvex-bidder-dashboard-page .preview-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.salvex-bidder-dashboard-page .car-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-primary-navy);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.salvex-bidder-dashboard-page .car-loc {
+  font-size: 13px;
+  color: var(--color-muted-gray);
+}
+
+.salvex-bidder-dashboard-page .preview-bids {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  min-width: 120px;
+}
+
+.salvex-bidder-dashboard-page .b-lbl,
+.salvex-bidder-dashboard-page .f-lbl,
+.salvex-bidder-dashboard-page .wf-lbl,
+.salvex-bidder-dashboard-page .w-lbl,
+.salvex-bidder-dashboard-page .c-lbl,
+.salvex-bidder-dashboard-page .yp-lbl {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-muted-gray);
+}
+
+.salvex-bidder-dashboard-page .b-val {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-primary-navy);
+  font-variant-numeric: tabular-nums;
+}
+
+.salvex-bidder-dashboard-page .preview-actions {
+  display: flex;
+  justify-content: flex-end;
+  min-width: 120px;
+}
+
+.salvex-bidder-dashboard-page .winning-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #047857;
+}
+
+.salvex-bidder-dashboard-page .winning-indicator::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-success);
+  box-shadow: 0 0 0 3px rgba(22, 163, 68, 0.18);
+}
+
+/* ==========================================================================
+   MY BIDS
+   ========================================================================== */
+.salvex-bidder-dashboard-page .bids-filter-pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.salvex-bidder-dashboard-page .pill-btn {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.salvex-bidder-dashboard-page .pill-btn:hover {
+  border-color: #CBD5E1;
+  color: var(--color-primary-navy);
+}
+
+.salvex-bidder-dashboard-page .pill-btn.pill-active {
+  background: var(--color-primary-navy);
+  border-color: var(--color-primary-navy);
+  color: var(--color-white);
+}
+
+.salvex-bidder-dashboard-page .bids-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.salvex-bidder-dashboard-page .bid-card-item {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr) 200px;
+  gap: 20px;
+  padding: 16px;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid #CBD5E1;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-subtle);
+  transition: box-shadow 0.2s ease;
+}
+
+.salvex-bidder-dashboard-page .bid-card-item:hover {
+  box-shadow: var(--shadow-card-hover);
+}
+
+.salvex-bidder-dashboard-page .bid-card-item.active,
+.salvex-bidder-dashboard-page .bid-card-item.winning { border-left-color: #2563EB; }
+.salvex-bidder-dashboard-page .bid-card-item.outbid { border-left-color: var(--color-error); }
+.salvex-bidder-dashboard-page .bid-card-item.won { border-left-color: var(--color-success); }
+
+.salvex-bidder-dashboard-page .bci-media {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: #E2E8F0;
+}
+
+.salvex-bidder-dashboard-page .bci-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.salvex-bidder-dashboard-page .bci-media .bci-tag {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  box-shadow: var(--shadow-subtle);
+}
+
+.salvex-bidder-dashboard-page .bci-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.salvex-bidder-dashboard-page .bci-info h3 {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--color-primary-navy);
+  line-height: 1.35;
+}
+
+.salvex-bidder-dashboard-page .bci-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-size: 13px;
+  color: var(--color-muted-gray);
+}
+
+.salvex-bidder-dashboard-page .bci-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.salvex-bidder-dashboard-page .bci-figures {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: auto;
+}
+
+.salvex-bidder-dashboard-page .fig-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: var(--color-off-white);
+  border: 1px solid var(--color-border);
+}
+
+.salvex-bidder-dashboard-page .f-val {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--color-primary-navy);
+  font-variant-numeric: tabular-nums;
+}
+
+.salvex-bidder-dashboard-page .f-val.highlight {
+  color: var(--color-auction-red);
+}
+
+.salvex-bidder-dashboard-page .bci-actions {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* ==========================================================================
+   WON AUCTIONS & WATCHLIST (card grids)
+   ========================================================================== */
+.salvex-bidder-dashboard-page .won-auctions-grid,
+.salvex-bidder-dashboard-page .watchlist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.salvex-bidder-dashboard-page .won-lot-card,
+.salvex-bidder-dashboard-page .watchlist-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-subtle);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.salvex-bidder-dashboard-page .won-lot-card:hover,
+.salvex-bidder-dashboard-page .watchlist-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.salvex-bidder-dashboard-page .won-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.salvex-bidder-dashboard-page .won-badge {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #047857;
+}
+
+.salvex-bidder-dashboard-page .won-card-media,
+.salvex-bidder-dashboard-page .wlc-img-wrap {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  background: #E2E8F0;
+  overflow: hidden;
+}
+
+.salvex-bidder-dashboard-page .won-card-media img,
+.salvex-bidder-dashboard-page .wlc-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.salvex-bidder-dashboard-page .won-card-body,
+.salvex-bidder-dashboard-page .wlc-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  flex: 1;
+}
+
+.salvex-bidder-dashboard-page .won-card-body h3,
+.salvex-bidder-dashboard-page .wlc-body h4 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-primary-navy);
+  line-height: 1.35;
+}
+
+.salvex-bidder-dashboard-page .won-figures-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.salvex-bidder-dashboard-page .won-figures-grid > div,
+.salvex-bidder-dashboard-page .wlc-price-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.salvex-bidder-dashboard-page .wf-val,
+.salvex-bidder-dashboard-page .w-val {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-primary-navy);
+  font-variant-numeric: tabular-nums;
+}
+
+.salvex-bidder-dashboard-page .wf-val.text-red {
+  color: var(--color-auction-red);
+}
+
+.salvex-bidder-dashboard-page .won-location-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: var(--color-off-white);
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.45;
+}
+
+.salvex-bidder-dashboard-page .won-location-box svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.salvex-bidder-dashboard-page .won-card-actions,
+.salvex-bidder-dashboard-page .wlc-actions {
+  margin-top: auto;
+}
+
+.salvex-bidder-dashboard-page .btn-remove-watch {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--color-primary-navy);
+  cursor: pointer;
+  box-shadow: var(--shadow-card);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.salvex-bidder-dashboard-page .btn-remove-watch:hover {
+  background: var(--color-error);
+  color: var(--color-white);
+}
+
+.salvex-bidder-dashboard-page .salvex-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  padding: 48px 24px;
+  background: var(--color-white);
+  border: 1px dashed #CBD5E1;
+  border-radius: var(--radius-lg);
+}
+
+.salvex-bidder-dashboard-page .salvex-empty-state h3 {
+  font-size: 17px;
+  color: var(--color-primary-navy);
+}
+
+.salvex-bidder-dashboard-page .salvex-empty-state p {
+  max-width: 420px;
+  font-size: 14px;
+  color: var(--color-muted-gray);
+}
+
+/* ==========================================================================
+   PAYMENTS & ESCROW
+   ========================================================================== */
+.salvex-bidder-dashboard-page .escrow-summary-chips {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.salvex-bidder-dashboard-page .chip-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px 18px;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.salvex-bidder-dashboard-page .c-val {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-primary-navy);
+  font-variant-numeric: tabular-nums;
+}
+
+.salvex-bidder-dashboard-page .c-val.text-red {
+  color: var(--color-error);
+}
+
+.salvex-bidder-dashboard-page .ledger-table-wrap {
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow-x: auto;
+}
+
+.salvex-bidder-dashboard-page .salvex-table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.salvex-bidder-dashboard-page .salvex-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-muted-gray);
+  background: var(--color-off-white);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.salvex-bidder-dashboard-page .salvex-table td {
+  padding: 14px 16px;
+  color: #334155;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+
+.salvex-bidder-dashboard-page .salvex-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.salvex-bidder-dashboard-page .salvex-table tbody tr:hover {
+  background: #FAFBFD;
+}
+
+.salvex-bidder-dashboard-page .salvex-table strong {
+  color: var(--color-primary-navy);
+}
+
+.salvex-bidder-dashboard-page .badge-paid,
+.salvex-bidder-dashboard-page .badge-pending,
+.salvex-bidder-dashboard-page .badge-verified,
+.salvex-bidder-dashboard-page .badge-pass {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.salvex-bidder-dashboard-page .badge-paid { background: #ECFDF5; color: #047857; }
+.salvex-bidder-dashboard-page .badge-pending { background: #FFFBEB; color: #B45309; }
+.salvex-bidder-dashboard-page .badge-verified { background: #EFF6FF; color: #1D4ED8; }
+.salvex-bidder-dashboard-page .badge-pass { background: #ECFDF5; color: #047857; letter-spacing: 0.05em; }
+
+.salvex-bidder-dashboard-page .btn-table-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.salvex-bidder-dashboard-page .btn-table-action:hover {
+  border-color: #CBD5E1;
+  color: var(--color-primary-navy);
+}
+
+.salvex-bidder-dashboard-page .btn-table-action.action-pay {
+  background: var(--color-auction-red);
+  border-color: var(--color-auction-red);
+  color: var(--color-white);
+}
+
+.salvex-bidder-dashboard-page .btn-table-action.action-pay:hover {
+  background: var(--color-auction-red-hover);
+}
+
+/* ==========================================================================
+   KYC & DOCUMENTS
+   ========================================================================== */
+.salvex-bidder-dashboard-page .kyc-status-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  border-radius: var(--radius-lg);
+  background: #FFFBEB;
+  border: 1px solid #FCD34D;
+  color: #B45309;
+}
+
+.salvex-bidder-dashboard-page .kyc-status-banner.verified {
+  background: #ECFDF5;
+  border-color: #6EE7B7;
+  color: #047857;
+}
+
+.salvex-bidder-dashboard-page .kyc-status-banner h4 {
+  font-size: 16px;
+  color: var(--color-primary-navy);
+}
+
+.salvex-bidder-dashboard-page .kyc-status-banner p {
+  margin-top: 2px;
+  font-size: 13px;
+  color: #475569;
+}
+
+.salvex-bidder-dashboard-page .kyc-documents-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.salvex-bidder-dashboard-page .kyc-doc-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.salvex-bidder-dashboard-page .kdc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--color-auction-red);
+}
+
+.salvex-bidder-dashboard-page .kdc-status {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #F1F5F9;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.salvex-bidder-dashboard-page .kyc-doc-card h4 {
+  font-size: 14px;
+  color: var(--color-primary-navy);
+  line-height: 1.4;
+}
+
+.salvex-bidder-dashboard-page .doc-num {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  color: #334155;
+}
+
+.salvex-bidder-dashboard-page .verified-date {
+  font-size: 12px;
+  color: var(--color-muted-gray);
+}
+
+/* ==========================================================================
+   VEHICLE LIFTING
+   ========================================================================== */
+.salvex-bidder-dashboard-page .lifting-lot-box {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-subtle);
+}
+
+.salvex-bidder-dashboard-page .llb-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.salvex-bidder-dashboard-page .llb-header h3 {
+  margin-top: 8px;
+  font-size: 18px;
+  color: var(--color-primary-navy);
+}
+
+.salvex-bidder-dashboard-page .llb-header p {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--color-muted-gray);
+}
+
+.salvex-bidder-dashboard-page .lifting-timeline-bar {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  position: relative;
+}
+
+.salvex-bidder-dashboard-page .timeline-step {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-muted-gray);
+}
+
+/* connector line between steps */
+.salvex-bidder-dashboard-page .timeline-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 15px;
+  left: calc(50% + 18px);
+  right: calc(-50% + 18px);
+  height: 2px;
+  background: var(--color-border);
+}
+
+.salvex-bidder-dashboard-page .timeline-step.step-done:not(:last-child)::after {
+  background: var(--color-success);
+}
+
+.salvex-bidder-dashboard-page .timeline-step .dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  background: var(--color-off-white);
+  border: 2px solid var(--color-border);
+  color: var(--color-muted-gray);
+}
+
+.salvex-bidder-dashboard-page .timeline-step.step-done {
+  color: #047857;
+}
+
+.salvex-bidder-dashboard-page .timeline-step.step-done .dot {
+  background: var(--color-success);
+  border-color: var(--color-success);
+  color: var(--color-white);
+}
+
+.salvex-bidder-dashboard-page .yard-pickup-details {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  background: var(--color-off-white);
+}
+
+.salvex-bidder-dashboard-page .yp-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.salvex-bidder-dashboard-page .yp-col p {
+  font-size: 14px;
+  color: var(--color-primary-navy);
+  line-height: 1.45;
+}
+
+/* ==========================================================================
+   NOTIFICATIONS
+   ========================================================================== */
+.salvex-bidder-dashboard-page .notifications-list {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.salvex-bidder-dashboard-page .notif-item {
+  display: flex;
+  gap: 14px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.salvex-bidder-dashboard-page .notif-item:last-child {
+  border-bottom: none;
+}
+
+.salvex-bidder-dashboard-page .notif-item.notif-unread {
+  background: #F5F9FF;
+  box-shadow: inset 3px 0 0 var(--color-auction-red);
+}
+
+.salvex-bidder-dashboard-page .notif-icon {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #F1F5F9;
+  color: #475569;
+}
+
+.salvex-bidder-dashboard-page .notif-icon.notif-outbid { background: #FEF2F2; color: #B91C1C; }
+.salvex-bidder-dashboard-page .notif-icon.notif-won { background: #ECFDF5; color: #047857; }
+.salvex-bidder-dashboard-page .notif-icon.notif-kyc { background: #EFF6FF; color: #1D4ED8; }
+.salvex-bidder-dashboard-page .notif-icon.notif-lifting { background: #FFFBEB; color: #B45309; }
+
+.salvex-bidder-dashboard-page .notif-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.salvex-bidder-dashboard-page .notif-content h4 {
+  font-size: 14px;
+  color: var(--color-primary-navy);
+}
+
+.salvex-bidder-dashboard-page .notif-content p {
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.salvex-bidder-dashboard-page .notif-time {
+  font-size: 12px;
+  color: var(--color-muted-gray);
+}
+
+.salvex-bidder-dashboard-page .nav-badge-dot {
+  margin-left: auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-auction-red);
+}
+
+/* ==========================================================================
+   PROFILE
+   ========================================================================== */
+.salvex-bidder-dashboard-page .profile-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  padding: 24px;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.salvex-bidder-dashboard-page .profile-form-grid .full-width {
+  grid-column: 1 / -1;
+}
+
+/* ==========================================================================
+   RESPONSIVE
+   ========================================================================== */
+@media (max-width: 1100px) {
+  .salvex-bidder-dashboard-page .bid-card-item {
+    grid-template-columns: 180px minmax(0, 1fr);
+  }
+
+  .salvex-bidder-dashboard-page .bci-actions {
+    grid-column: 1 / -1;
+    flex-direction: row;
+  }
+}
+
+@media (max-width: 860px) {
+  .salvex-bidder-dashboard-page .bid-preview-row {
+    grid-template-columns: 96px minmax(0, 1fr) auto;
+    grid-template-areas:
+      "thumb details status"
+      "thumb bids actions";
+    row-gap: 8px;
+  }
+
+  .salvex-bidder-dashboard-page .thumb-car { grid-area: thumb; width: 96px; height: 96px; }
+  .salvex-bidder-dashboard-page .preview-details { grid-area: details; }
+  .salvex-bidder-dashboard-page .preview-status { grid-area: status; justify-self: end; }
+  .salvex-bidder-dashboard-page .preview-bids { grid-area: bids; align-items: flex-start; min-width: 0; }
+  .salvex-bidder-dashboard-page .preview-actions { grid-area: actions; min-width: 0; }
+
+  .salvex-bidder-dashboard-page .escrow-summary-chips,
+  .salvex-bidder-dashboard-page .yard-pickup-details {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .salvex-bidder-dashboard-page .dash-section-box,
+  .salvex-bidder-dashboard-page .lifting-lot-box,
+  .salvex-bidder-dashboard-page .profile-form-grid {
+    padding: 16px;
+  }
+
+  .salvex-bidder-dashboard-page .bid-card-item {
+    grid-template-columns: 1fr;
+  }
+
+  .salvex-bidder-dashboard-page .bci-actions {
+    flex-direction: column;
+  }
+
+  .salvex-bidder-dashboard-page .bid-preview-row {
+    grid-template-columns: 72px minmax(0, 1fr);
+    grid-template-areas:
+      "thumb details"
+      "status status"
+      "bids actions";
+  }
+
+  .salvex-bidder-dashboard-page .thumb-car { width: 72px; height: 72px; }
+  .salvex-bidder-dashboard-page .preview-status { justify-self: start; }
+
+  .salvex-bidder-dashboard-page .lifting-timeline-bar {
+    grid-template-columns: 1fr 1fr;
+    row-gap: 20px;
+  }
+
+  .salvex-bidder-dashboard-page .timeline-step:nth-child(2)::after {
+    display: none;
+  }
+
+  .salvex-bidder-dashboard-page .profile-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .salvex-bidder-dashboard-page .tab-pane-header h2,
+  .salvex-bidder-dashboard-page .tab-pane-header-row h2 {
+    font-size: 19px;
+  }
+}
+
+/* real-data dashboard: rows are links to the auction page */
+.salvex-bidder-dashboard-page a.bid-preview-row { text-decoration: none; color: inherit; }
+.salvex-bidder-dashboard-page div.thumb-car { background: #E2E8F0; }
+.salvex-bidder-dashboard-page .car-loc { display: inline-flex; align-items: center; gap: 4px; }
+.salvex-bidder-dashboard-page .kyc-status-banner .salvex-btn { margin-left: auto; }
+.salvex-bidder-dashboard-page .salvex-empty-state .salvex-btn { margin-top: 6px; }
+
+/* Profile form fields */
+.form-field { display: flex; flex-direction: column; gap: 6px; }
+.form-field.full-width { grid-column: 1 / -1; }
+.form-field label { font-size: 13px; font-weight: 700; color: #334155; display: block; }
+.form-field input,
+.form-field select,
+.form-field textarea {
+  width: 100%; height: 42px; padding: 0 14px; background-color: #FFFFFF; border: 1px solid #CBD5E1;
+  border-radius: 8px; font-size: 13.5px; font-family: inherit; color: #0B1220; outline: none;
+  box-sizing: border-box; transition: border-color 0.2s, box-shadow 0.2s;
+}
+.form-field textarea { height: auto; padding: 10px 14px; resize: vertical; line-height: 1.5; }
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus { border-color: #075BFF; box-shadow: 0 0 0 3px rgba(7, 91, 255, 0.12); }
+.form-field input:disabled { background: #F1F5F9; color: #64748B; }
+
+/* stat cards: Outbid is red, Active bids neutral */
+.salvex-bidder-dashboard-page .stat-red { background-color: #FEF2F2; color: #DC2626; }
+.salvex-bidder-dashboard-page .stat-navy { background-color: #F1F5F9; color: #0B1220; }
+
+.salvex-bidder-dashboard-page .bidder-buyer-id { font-weight: 700; color: #fff; letter-spacing: 0.02em; }
+
+.salvex-bidder-dashboard-page .urgent-payment-banner.won-banner { background: #F0FDF4; border-color: #BBF7D0; }

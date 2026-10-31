@@ -73,7 +73,7 @@ async def test_promoting_requires_an_active_verified_user_and_signs_them_out(api
     assert (await api.client.get("/api/auth/me", headers=headers)).status_code == 401   # must sign in again
 
     unverified = new_email("unverified")
-    await api.client.post("/api/auth/register", json={"name": "Some One", "email": unverified, "password": PASSWORD})
+    await api.client.post("/api/auth/register", json={"name": "Some One", "email": unverified, "password": PASSWORD, "mobile": "+91 98765 43210"})
     async with api.db() as db:
         with pytest.raises(AdminProvisioningError):
             await provision_admin(db, email=unverified, name="", promote_existing=True)

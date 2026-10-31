@@ -1,0 +1,144 @@
+/* Minimal header + footer for the account pages (sign in, register, verify, password). */
+
+/* These pages have no fixed site menu above them, so nothing needs to be cleared. */
+.salvex-app-root.layout-auth,
+.salvex-app-root.layout-app {
+  --salvex-nav-offset: 0px;
+}
+
+.mc-inner {
+  width: 100%;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.mc-header {
+  background: #FFFFFF;
+  border-bottom: 1px solid #E5ECF5;
+}
+
+.mc-header .mc-inner {
+  min-height: 72px;
+}
+
+.mc-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: #0B1220;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  border-radius: 10px;
+}
+
+.mc-logo .salvex-logo-img {
+  border-radius: 10px;
+}
+
+.mc-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid #D5DEEA;
+  border-radius: 999px;
+  color: #1E293B;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+}
+
+.mc-back:hover {
+  border-color: var(--color-auction-red, #075BFF);
+  color: var(--color-auction-red, #075BFF);
+  background: #F5F8FF;
+}
+
+.mc-back svg {
+  transition: transform 0.2s ease;
+}
+
+.mc-back:hover svg {
+  transform: translateX(-3px);
+}
+
+.mc-logo:focus-visible,
+.mc-back:focus-visible,
+.mc-footer a:focus-visible {
+  outline: 2px solid var(--color-auction-red, #075BFF);
+  outline-offset: 3px;
+}
+
+.mc-footer {
+  background: #F4F7FB;
+  border-top: 1px solid #E5ECF5;
+  font-size: 13px;
+  color: #64748B;
+}
+
+.mc-footer .mc-inner {
+  min-height: 64px;
+  flex-wrap: wrap;
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+
+.mc-footer nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+}
+
+.mc-footer a {
+  color: #475569;
+  text-decoration: none;
+  border-radius: 4px;
+}
+
+.mc-footer a:hover {
+  color: var(--color-auction-red, #075BFF);
+  text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+  .mc-inner {
+    padding: 0 16px;
+  }
+
+  .mc-header .mc-inner {
+    min-height: 64px;
+  }
+
+  .mc-logo span {
+    display: none;            /* the logo alone is enough on a phone */
+  }
+
+  .mc-back {
+    padding: 0 14px;
+    font-size: 13.5px;
+  }
+
+  .mc-footer .mc-inner {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .mc-footer nav {
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-back svg {
+    transition: none;
+  }
+}

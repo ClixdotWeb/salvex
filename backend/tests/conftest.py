@@ -23,9 +23,18 @@ def pytest_configure(config):
     os.environ["APP_SECRET_KEY"] = "test_secret_key_minimum_32_characters_long_for_salvex_unit_tests"
     os.environ["DATABASE_URL"] = test_url  # overrides backend/.env for the app, Alembic and tests
     os.environ["FRONTEND_ORIGINS"] = "http://localhost:5173"
+    # Most order tests cover the (optional) online payment flow; tests of the default manual flow switch it off.
+    os.environ["ONLINE_PAYMENT_FLOW"] = "true"
+    # Many tests use seller accounts to add vehicles; tests of the admin-only flow switch them off.
+    os.environ["SELLER_ACCOUNTS"] = "true"
+    # The older KYC tests upload one generic document; tests of the client's document rules set these back.
+    os.environ["KYC_REQUIRED_DOCUMENTS"] = ""
+    os.environ["KYC_REQUIRE_AADHAAR_NUMBER"] = "false"
+    # The older tests register with the email code only; test_mobile_otp.py switches SMS codes on.
+    os.environ["MOBILE_OTP_REQUIRED"] = "false"
     # Anything written by the developer email outbox during tests goes to a temp folder, never the repo
     os.environ["DEV_OUTBOX_PATH"] = str(Path(tempfile.gettempdir()) / "salvex-test-outbox" / "outbox.jsonl")
-    for name in ("COOKIE_SECURE", "COOKIE_SAMESITE", "COOKIE_DOMAIN", "EMAIL_PROVIDER", "RATE_LIMIT_ENABLED", "TRUSTED_PROXY_COUNT"):
+    for name in ("COOKIE_SECURE", "COOKIE_SAMESITE", "COOKIE_DOMAIN", "EMAIL_PROVIDER", "SMS_PROVIDER", "RATE_LIMIT_ENABLED", "TRUSTED_PROXY_COUNT"):
         os.environ.pop(name, None)  # tests start from the defaults, whatever the developer's shell has set
 
 
@@ -56,9 +65,10 @@ def _fresh_abuse_protection_state():
 # HTTP test harness: the real FastAPI app, a mocked email service, and an isolated database.
 # ---------------------------------------------------------------------------
 class ApiHarness:
-    def __init__(self, client, mail, connection):
+    def __init__(self, client, mail, connection, sms=None):
         self.client = client
         self.mail = mail
+        self.sms = sms
         self._connection = connection
 
     def db(self):
@@ -81,7 +91,7 @@ async def api(monkeypatch):
 
     from app.db.session import get_db
     from app.main import app
-    from helpers import CapturingEmailService
+    from helpers import CapturingEmailService, CapturingSmsService
     from safe_db import safe_test_url
 
     engine = create_async_engine(safe_test_url(), poolclass=NullPool)  # local test database only
@@ -97,12 +107,14 @@ async def api(monkeypatch):
                 raise
 
     mail = CapturingEmailService()
+    sms = CapturingSmsService()
     app.dependency_overrides[get_db] = override_get_db
     monkeypatch.setattr("app.api.auth.get_email_service", lambda: mail)
+    monkeypatch.setattr("app.services.auth_service.get_sms_service", lambda: sms)
 
     try:
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-            yield ApiHarness(client, mail, conn)
+            yield ApiHarness(client, mail, conn, sms)
     finally:
         app.dependency_overrides.pop(get_db, None)
         await outer.rollback()

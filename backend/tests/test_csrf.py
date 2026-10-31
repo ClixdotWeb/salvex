@@ -61,7 +61,7 @@ async def test_state_changing_requests_from_a_foreign_origin_are_blocked_everywh
     await register_and_verify(api, email)
     for path, body in (
         ("/api/auth/login", {"identifier": email, "password": PASSWORD}),   # blocks "login CSRF"
-        ("/api/auth/register", {"name": "Evil", "email": new_email("e"), "password": PASSWORD}),
+        ("/api/auth/register", {"name": "Evil", "email": new_email("e"), "password": PASSWORD, "mobile": "+91 98765 43210"}),
         ("/api/auth/forgot-password", {"email": email}),
         ("/api/auth/verify-email", {"email": email, "otp": "123456"}),
     ):

@@ -63,8 +63,13 @@ export async function mockApi(page) {
     'POST /api/auth/verify-email': ({ body }) => {
       if (state.codes.get(`email_verification:${body.email}`) === body.otp) {
         const account = state.accounts.get(String(body.email).toLowerCase());
-        if (account) account.verified = true;
-        return json(200, { message: 'Email verified successfully.', success: true });
+        if (!account) return error(400, 'Invalid or expired verification code.', 'invalid_code');
+        account.verified = true;
+        state.user = account.user;            // like the real backend: a correct code signs the user in
+        return json(200, {
+          message: 'Email verified. You are now signed in.', success: true,
+          user: account.user, csrf_token: CSRF, access_token: null, token_type: 'bearer',
+        });
       }
       state.attemptsLeft -= 1;
       if (state.attemptsLeft < 0) return error(400, 'Too many failed attempts. Please request a new code.', 'code_locked');
@@ -84,6 +89,30 @@ export async function mockApi(page) {
     },
   };
 
+  // Read-only data endpoints used by the real pages. By default they answer with empty lists, like a
+  // fresh database; a test can put rows in `state.data` (path -> items) or use override().
+  const emptyPage = (items = []) => json(200, { items, page: 1, page_size: 20, total: items.length, pages: items.length ? 1 : 0 });
+  const LIST_PATHS = [
+    '/api/catalogue/vehicles', '/api/auctions', '/api/parts', '/api/notifications', '/api/bids/mine',
+    '/api/part-requests/mine', '/api/vehicles/mine', '/api/admin/users', '/api/admin/kyc/submissions', '/api/admin/vehicles',
+    '/api/admin/auctions', '/api/admin/orders', '/api/admin/parts', '/api/admin/part-requests', '/api/admin/contact-messages',
+    '/api/admin/audit-logs', '/api/admin/results', '/api/ready-to-lift', '/api/admin/enquiries',
+  ];
+  state.data = new Map();
+  for (const path of LIST_PATHS) handlers[`GET ${path}`] = () => emptyPage(state.data.get(path) || []);
+  handlers['GET /api/notifications/unread-count'] = () => (state.user ? json(200, { unread: 0 }) : error(401, 'Authentication required.', 'not_authenticated'));
+  handlers['GET /api/catalogue/vehicle-options'] = () => json(200, {});
+  handlers['GET /api/site-config'] = () => json(200, { online_payment: state.onlinePayment ?? false, seller_accounts: state.sellerAccounts ?? true });
+  handlers['GET /api/orders/mine'] = () => json(200, []);
+  handlers['GET /api/ready-to-lift/interests/mine'] = () => json(200, []);
+  handlers['GET /api/kyc/me'] = () => json(200, { kyc_status: state.user?.kyc_status || 'pending', submission: null });
+  handlers['GET /api/admin/dashboard'] = () => json(200, {
+    users_total: 3, bidders: 1, sellers: 1, suspended_users: 0, kyc_waiting_review: 0, vehicles_waiting_review: 0,
+    vehicles_approved: 0, auctions_live: 0, auctions_upcoming: 0, auctions_paused: 0, auctions_awaiting_close: 0,
+    bids_today: 0, orders_awaiting_payment: 0, payments_to_confirm: 0, part_requests_new: 0, contact_messages_new: 0,
+    server_time: new Date().toISOString(),
+  });
+
   await page.route(
     (url) => new URL(url).pathname.startsWith('/api/'),
     async (route) => {
@@ -96,7 +125,7 @@ export async function mockApi(page) {
       } catch {
         body = null;
       }
-      const call = { method: request.method(), path, body, headers: request.headers() };
+      const call = { method: request.method(), path, query: new URL(request.url()).search, body, headers: request.headers() };
       state.calls.push(call);
 
       if (key === 'GET /api/auth/me' && state.meDelayMs) await new Promise((r) => setTimeout(r, state.meDelayMs));

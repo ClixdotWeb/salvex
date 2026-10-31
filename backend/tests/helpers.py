@@ -3,6 +3,7 @@ import uuid
 from typing import List, Optional, Tuple
 
 from app.services.email import BaseEmailService
+from app.services.sms import BaseSmsService
 
 PASSWORD = "StrongPassword@2026"
 NEW_PASSWORD = "NewSecretPassword456!"
@@ -45,8 +46,22 @@ class CapturingEmailService(BaseEmailService):
         return self.of_type(kind, to)[-1]["otp"]
 
 
+class CapturingSmsService(BaseSmsService):
+    """Test double that records SMS codes instead of sending them."""
+
+    def __init__(self) -> None:
+        self.sent: List[dict] = []
+
+    async def send_verification_otp(self, mobile: str, otp: str) -> Tuple[bool, str]:
+        self.sent.append({"to": mobile, "otp": otp})
+        return True, "captured"
+
+    def last_otp(self, to: Optional[str] = None) -> str:
+        return [m for m in self.sent if to is None or m["to"] == to][-1]["otp"]
+
+
 async def register(client, email: str, password: str = PASSWORD, **extra):
-    payload = {"name": "Api Test User", "email": email, "password": password, "role": "bidder"}
+    payload = {"name": "Api Test User", "email": email, "password": password, "role": "bidder", "mobile": "+91 90000 00001"}
     payload.update(extra)
     return await client.post("/api/auth/register", json=payload)
 
@@ -58,6 +73,9 @@ async def register_and_verify(api, email: str, password: str = PASSWORD, **extra
         "/api/auth/verify-email", json={"email": email, "otp": api.mail.last_otp("verification", email)}
     )
     assert res.status_code == 200, res.text
+    # Verifying also signs the user in (cookie). Tests that need a session sign in explicitly,
+    # so start every caller from a signed-out client as before.
+    api.client.cookies.clear()
 
 
 async def login(client, email: str, password: str = PASSWORD, bearer: bool = False):

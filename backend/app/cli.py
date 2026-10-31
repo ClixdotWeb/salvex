@@ -57,7 +57,13 @@ def _dev_last_code(args: argparse.Namespace) -> int:
     from app.services.email import read_dev_outbox
 
     try:
-        messages = [m for m in read_dev_outbox() if m["to"].lower() == args.email.strip().lower()]
+        wanted = args.email.strip().lower()
+        if "@" in wanted:
+            messages = [m for m in read_dev_outbox() if m["to"].lower() == wanted]
+        else:  # a mobile number: compare digits only, so "+91 98765 43210" and "9876543210" both match
+            digits = "".join(c for c in wanted if c.isdigit())[-10:]
+            messages = [m for m in read_dev_outbox()
+                        if m.get("channel") == "sms" and "".join(c for c in m["to"] if c.isdigit()).endswith(digits)]
     except RuntimeError as exc:
         print(exc)
         return 1
@@ -78,8 +84,8 @@ def main(argv=None) -> int:
     admin.add_argument("--name", default="")
     admin.add_argument("--promote-existing", action="store_true", help="Promote an existing verified user instead of creating one")
 
-    code = sub.add_parser("dev-last-code", help="Show the newest developer-outbox email for an address")
-    code.add_argument("email")
+    code = sub.add_parser("dev-last-code", help="Show the newest developer-outbox email (or SMS) for an address or mobile")
+    code.add_argument("email", help="email address, or mobile number for the SMS code")
 
     args = parser.parse_args(argv)
     if args.command == "create-admin":

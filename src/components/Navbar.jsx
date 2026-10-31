@@ -11,12 +11,15 @@ import {
   Headphones,
   Menu,
   X,
-  PlusCircle
+  PlusCircle,
 } from 'lucide-react';
 import './Navbar.css';
 import { useAuth } from '../auth/useAuth';
+import NotificationBell from './NotificationBell';
+import AccountMenu from './AccountMenu';
 import { homeForRole } from '../auth/roles';
 import { DEMO_PERSONAS_ENABLED } from '../auth/demo';
+import { COMPANY } from '../config/company';
 
 export default function Navbar({
   activeSection = 'home',
@@ -32,12 +35,12 @@ export default function Navbar({
 }) {
   const { status: authStatus, user: authUser, demoRole } = useAuth();
   const accountHome = homeForRole(authUser?.role ?? demoRole);
+  const firstName = (authUser?.name || '').trim().split(' ')[0];
+  const initial = (firstName[0] || '?').toUpperCase();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCurrency, setSelectedCurrency] = useState('INR ₹');
-  const [currencyDropdownOpen, setCurrencyDropdownOpen] = useState(false); // was deleted by mistake in 48651a5; the markup below still uses it
   const [liveAuctionsDropdownOpen, setLiveAuctionsDropdownOpen] = useState(false);
   const [upcomingAuctionsDropdownOpen, setUpcomingAuctionsDropdownOpen] = useState(false);
   const [servicesDropdownOpen, setServicesDropdownOpen] = useState(false);
@@ -56,9 +59,6 @@ export default function Navbar({
       if (!e.target.closest('#nav-wrap-services')) {
         setServicesDropdownOpen(false);
       }
-      if (!e.target.closest('.navbar-currency-wrap')) {
-        setCurrencyDropdownOpen(false);
-      }
     };
 
     const handleKeyDown = (e) => {
@@ -66,7 +66,6 @@ export default function Navbar({
         setLiveAuctionsDropdownOpen(false);
         setUpcomingAuctionsDropdownOpen(false);
         setServicesDropdownOpen(false);
-        setCurrencyDropdownOpen(false);
         setMobileMenuOpen(false);
       }
     };
@@ -78,13 +77,6 @@ export default function Navbar({
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
-
-  const currencies = [
-    { code: 'INR', label: 'INR ₹' },
-    { code: 'USD', label: 'USD $' },
-    { code: 'AED', label: 'AED د.إ' },
-    { code: 'EUR', label: 'EUR €' }
-  ];
 
   useEffect(() => {
     let lastY = window.scrollY;
@@ -154,15 +146,6 @@ export default function Navbar({
         id="main-navbar"
       >
         {/* ==================================================================
-            SLIM ALWAYS-VISIBLE DEMO BANNER
-            ================================================================== */}
-        <div className="navbar-demo-disclaimer-strip" role="status">
-          <div className="salvex-nav-container demo-disclaimer-container">
-            <span><strong>Demo Prototype:</strong> All vehicles, bids, partners, prices and statistics are sample data. No real payments or transactions.</span>
-          </div>
-        </div>
-
-        {/* ==================================================================
             TIER 0: CRIMSON RED ANNOUNCEMENT BAR
             ================================================================== */}
         <div className="navbar-announcement-bar">
@@ -179,7 +162,7 @@ export default function Navbar({
             {/* Desktop Right */}
             <div className="announcement-right announcement-desktop">
               <Headphones size={13} className="announcement-icon" />
-              <span>Need Help? <strong>+91 00000 00000</strong></span>
+              {COMPANY.phone ? <span>Need Help? <strong>{COMPANY.phone}</strong></span> : <span>Need Help? <strong>Contact us</strong></span>}
             </div>
 
             {/* Mobile Announcement Banner (425px - 320px) matching reference */}
@@ -216,53 +199,8 @@ export default function Navbar({
               {mobileMenuOpen ? <X size={23} strokeWidth={2.2} /> : <Menu size={23} strokeWidth={2.2} />}
             </button>
 
-            {/* DESKTOP ONLY: Left Currency Selector + Search Icon Button */}
-            <div className="navbar-left-actions">
-              <div className="navbar-currency-wrap">
-                <button
-                  type="button"
-                  className="navbar-currency-btn"
-                  onClick={() => setCurrencyDropdownOpen(!currencyDropdownOpen)}
-                  aria-label="Select currency"
-                >
-                  <span>{selectedCurrency}</span>
-                  <ChevronDown size={14} className={`currency-chevron ${currencyDropdownOpen ? 'open' : ''}`} />
-                </button>
-
-                {currencyDropdownOpen && (
-                  <div className="navbar-currency-dropdown">
-                    {currencies.map((curr) => (
-                      <button
-                        key={curr.code}
-                        type="button"
-                        className={`currency-option ${selectedCurrency === curr.label ? 'active' : ''}`}
-                        onClick={() => {
-                          setSelectedCurrency(curr.label);
-                          setCurrencyDropdownOpen(false);
-                        }}
-                      >
-                        {curr.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Vertical divider */}
-              <div className="navbar-left-divider" aria-hidden="true" />
-
-              {/* Left Search Icon Button (White rounded square with red search icon) */}
-              <button
-                type="button"
-                className="btn-navbar-search-icon"
-                onClick={onOpenSearchModal}
-                title="Search Vehicles & Inventory"
-                aria-label="Search"
-                id="navbar-search-btn-left"
-              >
-                <Search size={18} strokeWidth={2.4} className="navbar-search-red-icon" />
-              </button>
-            </div>
+            {/* DESKTOP ONLY: keeps the space on the left (search now sits on the right) */}
+            <div className="navbar-left-actions" />
 
             {/* CENTER: Salvex Auction Brand Logo */}
             <div
@@ -277,49 +215,24 @@ export default function Navbar({
 
             {/* DESKTOP ONLY: List Your Vehicle + Wishlist + Login + Register CTA */}
             <div className="navbar-middle-actions">
-              {/* List Your Vehicle Button */}
+              {/* Search */}
               <button
                 type="button"
-                className="btn-nav-list-vehicle"
-                onClick={onOpenSellerModal}
-                id="nav-list-vehicle-btn"
-                title="List Your Vehicle for Auction"
+                className="navbar-action-icon-btn nav-round"
+                onClick={onOpenSearchModal}
+                title="Search vehicles"
+                aria-label="Search"
+                id="navbar-search-btn-left"
               >
-                <PlusCircle size={15} strokeWidth={2} />
-                <span>List Your Vehicle</span>
+                <Search size={21} strokeWidth={2.2} />
               </button>
 
-              {/* Wishlist / Saved Heart Icon */}
-              <button
-                type="button"
-                className="navbar-action-icon-btn"
-                onClick={onOpenSavedModal}
-                title="Saved Vehicles"
-                aria-label="Saved vehicles"
-              >
-                <Heart size={20} strokeWidth={1.8} />
-                {savedCount > 0 && (
-                  <span className="navbar-action-badge">{savedCount}</span>
-                )}
-              </button>
+              {/* Notifications (signed-in users) */}
+              {authUser && <NotificationBell />}
 
               {authStatus === 'loading' ? null : authUser ? (
-                /* Signed in: who you are, plus a real sign-out */
-                <div className="navbar-user-chip" id="nav-user-chip">
-                  <button
-                    type="button"
-                    className="navbar-action-icon-btn"
-                    onClick={() => onNavigate && onNavigate(accountHome)}
-                    title="My account"
-                    aria-label="My account"
-                  >
-                    <User size={20} strokeWidth={1.8} />
-                  </button>
-                  <span title={authUser.email}>Hi, {authUser.name.split(' ')[0]}</span>
-                  <button type="button" className="btn-signout" onClick={onLogout} id="nav-signout-btn">
-                    Sign out
-                  </button>
-                </div>
+                /* Signed in: avatar menu (who you are, dashboard, profile, sign out) */
+                <AccountMenu user={authUser} home={accountHome} onLogout={onLogout} />
               ) : (
                 <>
                   {DEMO_PERSONAS_ENABLED && demoRole && <span className="navbar-demo-badge">Demo screens, not signed in</span>}
@@ -327,22 +240,22 @@ export default function Navbar({
                   {/* User Login Icon */}
                   <button
                     type="button"
-                    className="navbar-action-icon-btn"
+                    className="navbar-action-icon-btn nav-round"
                     onClick={onOpenBidderModal}
                     title="Account Login"
                     aria-label="Account Login"
                   >
-                    <User size={20} strokeWidth={1.8} />
+                    <User size={21} strokeWidth={2} />
                   </button>
 
-                  {/* Register as Bidder Red Button */}
+                  {/* Register button */}
                   <button
                     type="button"
                     className="btn-register-red"
                     onClick={onOpenRegister || onOpenBidderModal}
                     id="nav-register-cta"
                   >
-                    <span>Register as Bidder</span>
+                    <span>Register</span>
                     <ArrowRight size={15} strokeWidth={2.2} />
                   </button>
                 </>
@@ -366,13 +279,13 @@ export default function Navbar({
               {/* Red User Box Button */}
               <button
                 type="button"
-                className="mobile-user-box-btn"
+                className={`mobile-user-box-btn${authUser ? ' is-avatar' : ''}`}
                 onClick={authUser ? () => onNavigate && onNavigate(accountHome) : onOpenBidderModal}
-                aria-label={authUser ? 'My account' : 'Account Login'}
-                title={authUser ? 'My account' : 'Account Login'}
+                aria-label={authUser ? `My account (${firstName})` : 'Account Login'}
+                title={authUser ? authUser.name : 'Account Login'}
                 id="mobile-user-btn"
               >
-                <User size={19} strokeWidth={2.2} />
+                {authUser ? <span className="mobile-user-initial">{initial}</span> : <User size={19} strokeWidth={2.2} />}
               </button>
             </div>
           </div>
@@ -404,7 +317,7 @@ export default function Navbar({
               >
                 <button
                   type="button"
-                  onClick={() => setLiveAuctionsDropdownOpen((prev) => !prev)}
+                  onClick={() => handleLinkClick('/auctions/live')}
                   className={`nav-link-btn ${activeSection === 'live-auctions' ? 'nav-link-active' : ''}`}
                   id="nav-link-live-auctions"
                   aria-expanded={liveAuctionsDropdownOpen}
@@ -421,14 +334,6 @@ export default function Navbar({
                     <button
                       type="button"
                       className="dropdown-item"
-                      onClick={() => handleLinkClick('/auctions/live')}
-                      id="nav-item-all-live-auctions"
-                    >
-                      All Live Auctions
-                    </button>
-                    <button
-                      type="button"
-                      className="dropdown-item"
                       onClick={() => handleLinkClick('/auctions/live?category=insurance')}
                       id="nav-subitem-live-insurance"
                     >
@@ -441,6 +346,14 @@ export default function Navbar({
                       id="nav-subitem-live-bank"
                     >
                       Bank / NBFC Auctions
+                    </button>
+                    <button
+                      type="button"
+                      className="dropdown-item"
+                      onClick={() => handleLinkClick('/auctions/live?category=used-vehicle')}
+                      id="nav-subitem-live-used"
+                    >
+                      Used Vehicle Auctions
                     </button>
                   </div>
                 )}
@@ -455,7 +368,7 @@ export default function Navbar({
               >
                 <button
                   type="button"
-                  onClick={() => setUpcomingAuctionsDropdownOpen((prev) => !prev)}
+                  onClick={() => handleLinkClick('/auctions/upcoming')}
                   className={`nav-link-btn ${activeSection === 'upcoming-auctions' ? 'nav-link-active' : ''}`}
                   id="nav-link-upcoming-auctions"
                   aria-expanded={upcomingAuctionsDropdownOpen}
@@ -468,14 +381,6 @@ export default function Navbar({
 
                 {upcomingAuctionsDropdownOpen && (
                   <div className="navbar-dropdown-menu" role="menu">
-                    <button
-                      type="button"
-                      className="dropdown-item"
-                      onClick={() => handleLinkClick('/auctions/upcoming')}
-                      id="nav-item-all-upcoming-auctions"
-                    >
-                      All Upcoming Auctions
-                    </button>
                     <button
                       type="button"
                       className="dropdown-item"
@@ -500,14 +405,6 @@ export default function Navbar({
                     >
                       Used Vehicle Auctions
                     </button>
-                    <button
-                      type="button"
-                      className="dropdown-item"
-                      onClick={() => handleLinkClick('/auctions/upcoming?category=used-spare-parts')}
-                      id="nav-subitem-upcoming-parts"
-                    >
-                      Used Spare Parts
-                    </button>
                   </div>
                 )}
               </div>
@@ -519,8 +416,19 @@ export default function Navbar({
                 className={`nav-link-btn ${activeSection === 'ready-to-lift' ? 'nav-link-active' : ''}`}
                 id="nav-link-ready-to-lift"
               >
-                <span>Ready to Lift</span>
+                <span>Ready to Lift</span><span className="nav-rtl-dot" aria-hidden="true" />
                 {activeSection === 'ready-to-lift' && <span className="nav-bottom-indicator" />}
+              </button>
+
+              {/* Spare Parts */}
+              <button
+                type="button"
+                onClick={() => handleLinkClick('spare-parts')}
+                className={`nav-link-btn ${activeSection === 'spare-parts' ? 'nav-link-active' : ''}`}
+                id="nav-link-spare-parts"
+              >
+                <span>Spare Parts</span>
+                {activeSection === 'spare-parts' && <span className="nav-bottom-indicator" />}
               </button>
 
               {/* Our Services Dropdown */}
@@ -564,14 +472,6 @@ export default function Navbar({
                     <button
                       type="button"
                       className="dropdown-item"
-                      onClick={() => handleLinkClick('/sell')}
-                      id="nav-service-sell"
-                    >
-                      Sell Your Vehicle
-                    </button>
-                    <button
-                      type="button"
-                      className="dropdown-item"
                       onClick={() => handleLinkClick('/services/documentation')}
                       id="nav-service-documentation"
                     >
@@ -580,17 +480,6 @@ export default function Navbar({
                   </div>
                 )}
               </div>
-
-              {/* Vehicles */}
-              <button
-                type="button"
-                onClick={() => handleLinkClick('vehicles')}
-                className={`nav-link-btn ${activeSection === 'vehicles' ? 'nav-link-active' : ''}`}
-                id="nav-link-vehicles"
-              >
-                <span>Vehicles</span>
-                {activeSection === 'vehicles' && <span className="nav-bottom-indicator" />}
-              </button>
 
               {/* How It Works */}
               <button
@@ -687,14 +576,6 @@ export default function Navbar({
                   <button
                     type="button"
                     className="mobile-sub-item"
-                    onClick={() => handleLinkClick('/auctions/live')}
-                    id="mobile-nav-item-all-live-auctions"
-                  >
-                    All Live Auctions
-                  </button>
-                  <button
-                    type="button"
-                    className="mobile-sub-item"
                     onClick={() => handleLinkClick('/auctions/live?category=insurance')}
                     id="mobile-nav-subitem-live-insurance"
                   >
@@ -707,6 +588,14 @@ export default function Navbar({
                     id="mobile-nav-subitem-live-bank"
                   >
                     Bank / NBFC Auctions
+                  </button>
+                  <button
+                    type="button"
+                    className="mobile-sub-item"
+                    onClick={() => handleLinkClick('/auctions/live?category=used-vehicle')}
+                    id="mobile-nav-subitem-live-used"
+                  >
+                    Used Vehicle Auctions
                   </button>
                 </div>
               )}
@@ -727,14 +616,6 @@ export default function Navbar({
               </button>
               {mobileUpcomingAuctionsOpen && (
                 <div className="mobile-sub-menu">
-                  <button
-                    type="button"
-                    className="mobile-sub-item"
-                    onClick={() => handleLinkClick('/auctions/upcoming')}
-                    id="mobile-nav-item-all-upcoming-auctions"
-                  >
-                    All Upcoming Auctions
-                  </button>
                   <button
                     type="button"
                     className="mobile-sub-item"
@@ -759,14 +640,6 @@ export default function Navbar({
                   >
                     Used Vehicle Auctions
                   </button>
-                  <button
-                    type="button"
-                    className="mobile-sub-item"
-                    onClick={() => handleLinkClick('/auctions/upcoming?category=used-spare-parts')}
-                    id="mobile-nav-subitem-upcoming-parts"
-                  >
-                    Used Spare Parts
-                  </button>
                 </div>
               )}
             </div>
@@ -779,7 +652,20 @@ export default function Navbar({
               id="mobile-nav-link-ready-to-lift"
             >
               <span className="mobile-nav-label-wrap">
-                <span>Ready to Lift</span>
+                <span>Ready to Lift</span><span className="nav-rtl-dot" aria-hidden="true" />
+              </span>
+              <ArrowRight size={14} className="mobile-nav-chevron" />
+            </button>
+
+            {/* Spare Parts */}
+            <button
+              type="button"
+              onClick={() => handleLinkClick('spare-parts')}
+              className={`mobile-nav-item ${activeSection === 'spare-parts' ? 'mobile-nav-active' : ''}`}
+              id="mobile-nav-link-spare-parts"
+            >
+              <span className="mobile-nav-label-wrap">
+                <span>Spare Parts</span>
               </span>
               <ArrowRight size={14} className="mobile-nav-chevron" />
             </button>
@@ -818,14 +704,6 @@ export default function Navbar({
                   <button
                     type="button"
                     className="mobile-sub-item"
-                    onClick={() => handleLinkClick('/sell')}
-                    id="mobile-nav-service-sell"
-                  >
-                    Sell Your Vehicle
-                  </button>
-                  <button
-                    type="button"
-                    className="mobile-sub-item"
                     onClick={() => handleLinkClick('/services/documentation')}
                     id="mobile-nav-service-documentation"
                   >
@@ -835,18 +713,6 @@ export default function Navbar({
               )}
             </div>
 
-            {/* Vehicles */}
-            <button
-              type="button"
-              onClick={() => handleLinkClick('vehicles')}
-              className={`mobile-nav-item ${activeSection === 'vehicles' ? 'mobile-nav-active' : ''}`}
-              id="mobile-nav-link-vehicles"
-            >
-              <span className="mobile-nav-label-wrap">
-                <span>Vehicles</span>
-              </span>
-              <ArrowRight size={14} className="mobile-nav-chevron" />
-            </button>
 
             {/* How It Works */}
             <button
@@ -891,18 +757,6 @@ export default function Navbar({
           <div className="mobile-drawer-divider" />
 
           <div className="mobile-drawer-ctas">
-            <button
-              type="button"
-              className="btn-drawer-outline"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                if (onOpenSellerModal) onOpenSellerModal();
-              }}
-            >
-              <PlusCircle size={15} />
-              <span>List Your Vehicle</span>
-            </button>
-
             {authUser ? (
               <>
                 <button
@@ -952,7 +806,7 @@ export default function Navbar({
                     else if (onOpenBidderModal) onOpenBidderModal();
                   }}
                 >
-                  <span>Register as Bidder</span>
+                  <span>Register</span>
                   <ArrowRight size={15} />
                 </button>
               </>

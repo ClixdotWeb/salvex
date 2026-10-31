@@ -1,5 +1,6 @@
 import React from 'react';
 import SalvexLogo from './SalvexLogo';
+import { COMPANY, telLink, waLink } from '../config/company';
 import {
   Phone,
   MessageCircle,
@@ -41,15 +42,15 @@ export default function Footer({ onNavigate, onOpenBidderModal, onOpenSellerModa
               <div className="footer-trust-stack">
                 <div className="footer-trust-item">
                   <ShieldCheck size={14} className="footer-trust-icon" />
-                  <span>Secure settlement (demo)</span>
+                  <span>Verified payments</span>
                 </div>
                 <div className="footer-trust-item">
                   <BadgeCheck size={14} className="footer-trust-icon" />
-                  <span>Verified KYC Bidder Process (Demo)</span>
+                  <span>KYC-verified bidders</span>
                 </div>
                 <div className="footer-trust-item">
                   <Clock size={14} className="footer-trust-icon" />
-                  <span>Demo environment</span>
+                  <span>Server-timed live auctions</span>
                 </div>
               </div>
               <div className="footer-social-row">
@@ -66,10 +67,9 @@ export default function Footer({ onNavigate, onOpenBidderModal, onOpenSellerModa
               <h4 className="footer-col-heading">Explore</h4>
               <ul className="footer-nav-list">
                 {[
-                  ['All Vehicles', 'vehicles'],
                   ['Live Auctions', 'live-auctions'],
                   ['Upcoming Auctions', 'upcoming-auctions'],
-                  ['Recently Added', 'recently-added'],
+                  ['Ready to Lift', 'ready-to-lift'],
                   ['How It Works', 'how-it-works'],
                 ].map(([label, route]) => (
                   <li key={route}>
@@ -101,16 +101,15 @@ export default function Footer({ onNavigate, onOpenBidderModal, onOpenSellerModa
               </ul>
             </div>
 
-            {/* Sellers */}
+            {/* Company */}
             <div className="footer-col">
-              <h4 className="footer-col-heading">For Sellers</h4>
+              <h4 className="footer-col-heading">Company</h4>
               <ul className="footer-nav-list">
                 {[
-                  ['List Your Vehicle', 'list-your-vehicle'],
-                  ['Seller Dashboard', 'seller-dashboard'],
-                  ['Consignor Overview', 'about'],
                   ['About Salvex', 'about'],
-                  ['Contact Operations', 'contact'],
+                  ['Bidding Rules', 'bidding-rules'],
+                  ['FAQ', 'faq'],
+                  ['Contact Us', 'contact'],
                 ].map(([label, route]) => (
                   <li key={label}>
                     <button className="footer-nav-link" onClick={() => onNavigate(route)}>
@@ -125,22 +124,34 @@ export default function Footer({ onNavigate, onOpenBidderModal, onOpenSellerModa
             <div className="footer-col">
               <h4 className="footer-col-heading">Contact Us</h4>
               <div className="footer-contact-list">
-                <a href="tel:+910000000000" className="footer-contact-item">
-                  <span className="footer-contact-icon"><Phone size={13} /></span>
-                  <span>+91 00000 00000</span>
-                </a>
-                <a href="mailto:demo@example.com" className="footer-contact-item">
+                {COMPANY.phone && (
+                  <a href={telLink(COMPANY.phone)} className="footer-contact-item">
+                    <span className="footer-contact-icon"><Phone size={13} /></span>
+                    <span>{COMPANY.phone}</span>
+                  </a>
+                )}
+                {COMPANY.email && (
+                  <a href={`mailto:${COMPANY.email}`} className="footer-contact-item">
+                    <span className="footer-contact-icon"><Mail size={13} /></span>
+                    <span>{COMPANY.email}</span>
+                  </a>
+                )}
+                {COMPANY.whatsapp && (
+                  <a href={waLink(COMPANY.whatsapp)} target="_blank" rel="noopener noreferrer" className="footer-contact-item">
+                    <span className="footer-contact-icon footer-wa-icon"><MessageCircle size={13} /></span>
+                    <span>WhatsApp Support</span>
+                  </a>
+                )}
+                {(COMPANY.city || COMPANY.address) && (
+                  <div className="footer-contact-item">
+                    <span className="footer-contact-icon"><MapPin size={13} /></span>
+                    <span>{COMPANY.city || COMPANY.address}</span>
+                  </div>
+                )}
+                <a href="/contact" className="footer-contact-item" onClick={(e) => { e.preventDefault(); onNavigate('contact'); }}>
                   <span className="footer-contact-icon"><Mail size={13} /></span>
-                  <span>demo@example.com</span>
+                  <span>Send us a message</span>
                 </a>
-                <a href="https://wa.me/910000000000" className="footer-contact-item">
-                  <span className="footer-contact-icon footer-wa-icon"><MessageCircle size={13} /></span>
-                  <span>WhatsApp Support</span>
-                </a>
-                <div className="footer-contact-item">
-                  <span className="footer-contact-icon"><MapPin size={13} /></span>
-                  <span>Mumbai, Maharashtra, India</span>
-                </div>
               </div>
 
               <h4 className="footer-col-heading" style={{ marginTop: '28px' }}>Legal</h4>
@@ -164,12 +175,12 @@ export default function Footer({ onNavigate, onOpenBidderModal, onOpenSellerModa
           {/* BOTTOM BAR */}
           <div className="footer-bottom-bar">
             <div className="footer-bottom-left">
-              <span>© {year} Salvex Auction (Demo Prototype). All rights reserved.</span>
+              <span>© {year} Salvex Auction. All rights reserved.</span>
             </div>
             <div className="footer-bottom-right">
-              <span>Online Vehicle Auction Platform (Demo)</span>
+              <span>Online Vehicle Auction Platform</span>
               <span className="footer-bottom-sep">•</span>
-              <span>Sample Institutional Liquidation Services</span>
+              <span>Salvage, Used & Damaged Vehicles</span>
               <button className="footer-admin-link" onClick={() => onNavigate('admin')}>
                 Admin →
               </button>

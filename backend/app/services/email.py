@@ -52,6 +52,11 @@ class BaseEmailService(ABC):
     async def send_password_changed_notice(self, to_email: str, user_name: str) -> Tuple[bool, str]:
         return True, "not supported by this email service"
 
+    async def send_notification(self, to_email: str, user_name: str, title: str, body: str,
+                                link: Optional[str] = None) -> Tuple[bool, str]:
+        """A website notification by email (outbid, won, payment, KYC result...)."""
+        return False, "notifications are not supported by this email service"
+
 
 class TemplatedEmailService(BaseEmailService):
     """Builds the message texts; subclasses only decide how a message is delivered."""
@@ -139,6 +144,17 @@ class TemplatedEmailService(BaseEmailService):
             "<p>If you did not do this, reset your password immediately and contact Salvex support.</p>"
         )
         return await self._deliver(to_email, "Your Salvex password was changed", text, body)
+
+    async def send_notification(self, to_email: str, user_name: str, title: str, body: str,
+                                link: Optional[str] = None) -> Tuple[bool, str]:
+        url = f"{settings.PUBLIC_SITE_URL.rstrip('/')}{link}" if link else None
+        text = f"Hello {user_name},\n\n{title}\n\n{body}\n" + (f"\nOpen: {url}\n" if url else "") + "\n- Salvex"
+        button = (f'<p style="margin: 24px 0;"><a href="{html.escape(url)}" style="background: #075BFF; color: #fff; '
+                  'padding: 12px 20px; border-radius: 8px; text-decoration: none; font-weight: 600;">Open on Salvex</a></p>') if url else ""
+        inner = (f"<p>Hello <strong>{html.escape(user_name)}</strong>,</p>"
+                 f"<h2 style=\"margin: 0 0 12px; font-size: 18px;\">{html.escape(title)}</h2>"
+                 f"<p>{html.escape(body)}</p>{button}")
+        return await self._deliver(to_email, f"Salvex: {title}", text, self._wrap_html(inner))
 
 
 class DevOutboxEmailService(TemplatedEmailService):

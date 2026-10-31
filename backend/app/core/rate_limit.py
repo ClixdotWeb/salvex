@@ -36,6 +36,11 @@ POLICIES: Dict[str, List[Tuple[str, int, int]]] = {
     "forgot": [("email", 5, 3600), ("ip", 20, 3600)],
     "reset": [("ip+email", 10, 900), ("ip", 60, 900), ("email", 30, 900)],
     "session": [("ip", 600, 60)],
+    "upload": [("ip", 60, 600)],      # KYC document uploads
+    # vehicle photos + their thumbnails: a bulk upload sends hundreds (admins only, sellers are off)
+    "photo": [("ip", 3000, 600)],
+    "bid": [("ip", 120, 60), ("email", 30, 60)],   # bids per minute (per network / per bidder)
+    "contact": [("ip", 10, 3600), ("email", 5, 3600)],   # contact-page messages
 }
 
 

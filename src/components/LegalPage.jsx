@@ -8,7 +8,7 @@ import {
   Download,
   Printer
 } from 'lucide-react';
-import { legalPoliciesData } from '../data/mockVehicles';
+import { legalPoliciesData } from '../data/siteContent';
 import './LegalPage.css';
 
 export default function LegalPage({ initialTab = 'terms' }) {

@@ -20,10 +20,20 @@ test.describe('session restore, signed-in indicator and sign out', () => {
   test('a signed-in user is restored after a reload using only the backend, with nothing kept in browser storage', async ({ page }) => {
     api.signIn(USERS.bidder);
     await open(page, '/');
-    await expect(page.locator('#nav-user-chip')).toContainText('Hi, Asha');
+    await expect(page.locator('#nav-avatar')).toHaveText('A');
+    await expect(page.locator('#nav-avatar')).toHaveAttribute('aria-label', 'My account (Asha)');
 
     await page.reload();
-    await expect(page.locator('#nav-user-chip')).toContainText('Hi, Asha');
+    await expect(page.locator('#nav-avatar')).toHaveText('A');
+
+    // the avatar opens the account menu: who you are, dashboard, profile and sign out
+    await page.locator('#nav-avatar').click();
+    const menu = page.getByRole('menu', { name: 'My account' });
+    await expect(menu).toContainText('Asha');
+    await expect(menu.getByRole('menuitem', { name: 'Sign out' })).toBeVisible();
+    await menu.getByRole('menuitem', { name: 'My dashboard' }).click();
+    await expect(page).toHaveURL(/\/dashboard$/);
+    await expect(menu).toHaveCount(0);
 
     const stored = await page.evaluate(() => ({
       local: Object.keys(localStorage),
@@ -48,6 +58,7 @@ test.describe('session restore, signed-in indicator and sign out', () => {
   test('sign out calls the server with the CSRF token, then clears the indicator for good', async ({ page }) => {
     api.signIn(USERS.seller);
     await open(page, '/');
+    await page.locator('#nav-avatar').click();
     await page.locator('#nav-signout-btn').click();
 
     await expect(page.locator('#nav-register-cta')).toBeVisible();
@@ -65,6 +76,7 @@ test.describe('session restore, signed-in indicator and sign out', () => {
     api.signIn(USERS.bidder);
     api.override('POST /api/auth/logout', () => 'abort');
     await open(page, '/');
+    await page.locator('#nav-avatar').click();
     await page.locator('#nav-signout-btn').click();
 
     await expect(page.locator('#nav-user-chip')).toHaveCount(0);

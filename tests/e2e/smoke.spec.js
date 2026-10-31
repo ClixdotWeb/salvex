@@ -39,8 +39,9 @@ test.describe('Phase 1 Smoke & Route Tests', () => {
 
   const routesToTest = [
     { path: '/', titleExpected: 'Salvex' },
-    { path: '/vehicles', headingText: 'Marketplace' },
-    { path: '/vehicles/recent', headingText: 'Recently' },
+    { path: '/auctions/ended', headingText: 'Ended' },
+    { path: '/spare-parts', headingText: 'Spare parts' },
+    { path: '/ready-to-lift', headingText: 'Ready to Lift' },
     { path: '/auctions/live', headingText: 'Live' },
     { path: '/auctions/upcoming', headingText: 'Upcoming' },
     { path: '/how-it-works', headingText: 'How' },
@@ -52,12 +53,10 @@ test.describe('Phase 1 Smoke & Route Tests', () => {
     { path: '/legal/terms', headingText: 'Terms' },
     { path: '/legal/privacy', headingText: 'Privacy' },
     { path: '/legal/refund', headingText: 'Refund' },
-    { path: '/ready-to-lift', headingText: 'Ready' },
     { path: '/services/insurance', headingText: 'Insurance' },
     { path: '/services/recovery', headingText: 'Recovery' },
     { path: '/services/documentation', headingText: 'Documentation' },
     { path: '/login', headingText: 'Sign In' },
-    { path: '/sell', headingText: 'List' },
   ];
 
   for (const { path } of routesToTest) {
@@ -80,11 +79,12 @@ test.describe('Phase 1 Smoke & Route Tests', () => {
     expect(errors).toEqual([]);
   });
 
-  test('/vehicles/:id opens directly with specs and bidding panel', async ({ page }) => {
-    const errors = attachConsoleAndAssetListeners(page);
-    await page.goto('/vehicles/salvex-103');
-    await expect(page.locator('text=Defender 110').first()).toBeVisible();
-    await expect(page.locator('#btn-place-bid-primary')).toBeVisible();
+  test('/vehicles/:id for an unknown vehicle shows a friendly message, not a crash', async ({ page }) => {
+    const errors = [];                       // the 404 from the API is expected here; only crashes count
+    page.on('pageerror', (err) => errors.push(err.message));
+    await page.goto('/vehicles/00000000-0000-4000-8000-000000000000');
+    await expect(page.locator('#main-content')).toBeVisible();
+    await expect(page.getByText(/not found|not available|could not/i).first()).toBeVisible();
     expect(errors).toEqual([]);
   });
 
@@ -109,11 +109,11 @@ test.describe('Phase 1 Smoke & Route Tests', () => {
     const errors = attachConsoleAndAssetListeners(page);
     api.signIn(USERS.admin);
     await page.goto('/admin');
-    await expect(page.locator('text=SALVEX COMMAND CENTER')).toBeVisible();
+    await expect(page.locator('.adm-brand strong')).toHaveText('Salvex Admin');
 
     await page.reload();
     await expect(page).toHaveURL(/.*\/admin/);
-    await expect(page.locator('text=SALVEX COMMAND CENTER')).toBeVisible();
+    await expect(page.locator('.adm-brand strong')).toHaveText('Salvex Admin');
     expect(errors).toEqual([]);
   });
 });

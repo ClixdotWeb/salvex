@@ -14,7 +14,9 @@ function describeLoginError(error) {
     case 'email_not_verified':
       return {
         kind: 'warning',
-        message: 'Your email address has not been verified yet. Enter the 6-digit code we emailed you to continue.',
+        message: /mobile/i.test(error.message || '')
+          ? 'Your mobile number has not been verified yet. Enter the 6-digit code we sent by SMS to continue.'
+          : 'Your email address has not been verified yet. Enter the 6-digit code we emailed you to continue.',
         needsVerification: true,
       };
     case 'account_suspended':

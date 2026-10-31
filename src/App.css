@@ -2461,6 +2461,40 @@
   color: var(--color-muted-gray);
 }
 
+/* How It Works: Salvex theme colours (blue + navy, as in the logo) */
+.salvex-how-section {
+  background: linear-gradient(180deg, #F5F8FF 0%, var(--color-white) 100%);
+}
+.salvex-how-section .steps-connecting-bar {
+  height: 2px;
+  background: linear-gradient(90deg, rgba(7, 91, 255, 0.15), rgba(7, 91, 255, 0.45) 50%, rgba(7, 91, 255, 0.15));
+}
+.salvex-how-section .step-icon-circle {
+  background: linear-gradient(145deg, #FFFFFF, #EEF4FF);
+  border: 2px solid rgba(7, 91, 255, 0.25);
+  color: var(--color-auction-red);
+  box-shadow: 0 6px 16px rgba(7, 91, 255, 0.12);
+}
+.salvex-how-section .step-card:hover .step-icon-circle {
+  background: linear-gradient(135deg, var(--color-auction-red), #3B82F6);
+  border-color: var(--color-auction-red);
+  color: var(--color-white);
+  box-shadow: 0 10px 22px rgba(7, 91, 255, 0.35);
+}
+.salvex-how-section .step-number-tag {
+  background: var(--color-primary-navy);
+  box-shadow: 0 2px 6px rgba(11, 18, 32, 0.25);
+}
+.salvex-how-section .step-card:hover .step-number-tag {
+  background: var(--color-auction-red);
+}
+.salvex-how-section .step-card:hover .step-title {
+  color: var(--color-auction-red);
+}
+.salvex-how-section .step-title {
+  transition: color 0.2s ease;
+}
+
 /* --------------------------------------------------------------------------
    08 WHY SALVEX
    -------------------------------------------------------------------------- */
@@ -4471,3 +4505,23 @@ a.footer-contact-item:hover {
   }
 }
 
+
+/* ==========================================================================
+   Room for the fixed navbar on the data pages (auctions, vehicles, spare parts,
+   ready to lift, admin, receipt). Navbar height: 158px desktop, 96px tablet, 90px phone.
+   ========================================================================== */
+:root { --salvex-nav-offset: 158px; }
+@media (max-width: 900px) { :root { --salvex-nav-offset: 96px; } }
+@media (max-width: 480px) { :root { --salvex-nav-offset: 90px; } }
+.pub-page { padding-top: calc(var(--salvex-nav-offset) + 28px); }
+.adm-page { padding-top: calc(var(--salvex-nav-offset) + 24px); }
+.receipt-page { padding-top: calc(var(--salvex-nav-offset) + 32px); }
+@media print { .receipt-page { padding-top: 0; } }
+.salvex-bidder-dashboard-page .bidder-header-banner { padding-top: calc(var(--salvex-nav-offset) + 36px); }
+
+/* How It Works (phones): the line joining each pair of steps in the theme blue */
+.salvex-how-section .steps-pair-line {
+  background-color: transparent !important;   /* an older rule forces grey with !important */
+  background-image: linear-gradient(90deg, rgba(7, 91, 255, 0.35), rgba(7, 91, 255, 0.75) 50%, rgba(7, 91, 255, 0.35));
+  height: 2px !important;
+}
