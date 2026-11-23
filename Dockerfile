@@ -19,6 +19,7 @@ RUN npm run build
 
 FROM nginx:1.27-alpine
 COPY deploy/nginx.conf.template /etc/nginx/templates/default.conf.template
+COPY deploy/security-headers.conf /etc/nginx/snippets/security-headers.conf
 COPY --from=build /src/dist /usr/share/nginx/html
 ENV BACKEND_URL=http://salvex-api:8000
 EXPOSE 80

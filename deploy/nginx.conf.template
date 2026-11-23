@@ -1,4 +1,12 @@
 # Rendered by the nginx image at start-up (envsubst replaces ${BACKEND_URL}).
+
+# HSTS (one year) only for requests that arrived over HTTPS at Coolify's proxy; see security-headers.conf.
+# No includeSubDomains/preload: other subdomains of the company domain may not have HTTPS.
+map $http_x_forwarded_proto $salvex_hsts {
+    https   "max-age=31536000";
+    default "";
+}
+
 server {
     listen 80;
     server_name _;
@@ -13,11 +21,8 @@ server {
     gzip_proxied any;
     gzip_types text/plain text/css application/javascript application/json image/svg+xml application/xml text/xml;
 
-    # Security headers. nginx drops these inside any location that sets its own add_header,
-    # so they are repeated in those locations below.
-    add_header X-Frame-Options "DENY" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    # Security headers: see security-headers.conf, included in each website location below.
+    # /api gets none from here: the API sends its own headers (no duplicates).
 
     location ~ ^/(api|docs|openapi\.json) {
         proxy_pass ${BACKEND_URL};
@@ -31,9 +36,7 @@ server {
     location /assets/ {
         expires 1y;
         add_header Cache-Control "public, immutable";
-        add_header X-Frame-Options "DENY" always;
-        add_header X-Content-Type-Options "nosniff" always;
-        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+        include /etc/nginx/snippets/security-headers.conf;
         try_files $uri =404;
     }
 
@@ -41,16 +44,14 @@ server {
     location ~* \.(png|jpe?g|webp|svg|ico)$ {
         expires 7d;
         add_header Cache-Control "public";
-        add_header X-Content-Type-Options "nosniff" always;
+        include /etc/nginx/snippets/security-headers.conf;
         try_files $uri =404;
     }
 
     # The page itself must never be cached: after a deploy every visitor gets the new version at once.
     location / {
         add_header Cache-Control "no-cache, no-store, must-revalidate" always;
-        add_header X-Frame-Options "DENY" always;
-        add_header X-Content-Type-Options "nosniff" always;
-        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+        include /etc/nginx/snippets/security-headers.conf;
         try_files $uri /index.html;
     }
 }

@@ -11,6 +11,7 @@
     "lint": "oxlint",
     "test:e2e": "playwright test",
     "check:no-demo": "node scripts/check-no-demo-in-build.mjs",
+    "check:csp": "vite build && playwright test -c playwright.csp.config.js",
     "preview": "vite preview"
   },
   "dependencies": {
