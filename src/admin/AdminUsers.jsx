@@ -6,7 +6,7 @@ import Select from '../components/ui/Select';
 import { useSiteConfig } from '../api/site';
 
 export default function AdminUsers() {
-  const [filters, setFilters] = useState({ q: '', role: '', status: '', kyc_status: '' });
+  const [filters, setFilters] = useState({ q: '', role: '', status: '', kyc_status: '', is_mobile_verified: '' });
   const [applied, setApplied] = useState(filters);
   const [page, setPage] = useState(1);
   const [openId, setOpenId] = useState(null);
@@ -35,6 +35,9 @@ export default function AdminUsers() {
         <Select value={filters.kyc_status} onChange={(e) => set('kyc_status', e.target.value)}>
           <option value="">Any KYC</option><option value="pending">KYC pending</option><option value="verified">KYC verified</option><option value="rejected">KYC rejected</option>
         </Select>
+        <Select value={filters.is_mobile_verified} onChange={(e) => set('is_mobile_verified', e.target.value)}>
+          <option value="">Any mobile</option><option value="true">Mobile verified</option><option value="false">Mobile not verified</option>
+        </Select>
         <button type="submit" className="adm-btn primary">Search</button>
       </form>
 
@@ -49,7 +52,7 @@ export default function AdminUsers() {
                 <tr key={u.id} className="clickable" onClick={() => setOpenId(u.id)}>
                   <td className="mono"><strong>{u.buyer_id}</strong></td>
                   <td><strong>{u.name}</strong><div className="adm-muted small">{u.email}{!u.is_email_verified && ' · email not verified'}</div></td>
-                  <td>{u.mobile || '—'}</td>
+                  <td>{u.mobile || '—'}{u.mobile && <div className="adm-muted small">{u.is_mobile_verified ? 'verified' : 'not verified'}</div>}</td>
                   <td><Badge value={u.role} /></td>
                   <td><Badge value={u.kyc_status} /></td>
                   <td><Badge value={u.is_active ? 'active' : 'suspended'} /></td>

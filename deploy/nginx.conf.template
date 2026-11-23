@@ -5,6 +5,16 @@ server {
     root /usr/share/nginx/html;
     client_max_body_size 12m;          # KYC documents and photos (API limit is 5 MB per file)
 
+    # Compress text responses (HTML, CSS, JS, JSON, SVG): pages load several times faster.
+    gzip on;
+    gzip_comp_level 5;
+    gzip_min_length 1024;
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_types text/plain text/css application/javascript application/json image/svg+xml application/xml text/xml;
+
+    # Security headers. nginx drops these inside any location that sets its own add_header,
+    # so they are repeated in those locations below.
     add_header X-Frame-Options "DENY" always;
     add_header X-Content-Type-Options "nosniff" always;
     add_header Referrer-Policy "strict-origin-when-cross-origin" always;
@@ -17,13 +27,30 @@ server {
         proxy_read_timeout 60s;
     }
 
+    # Built files have a content hash in their name, so they can be cached for a year.
     location /assets/ {
         expires 1y;
         add_header Cache-Control "public, immutable";
+        add_header X-Frame-Options "DENY" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
         try_files $uri =404;
     }
 
+    # Images and icons in /public change rarely: cache for a week.
+    location ~* \.(png|jpe?g|webp|svg|ico)$ {
+        expires 7d;
+        add_header Cache-Control "public";
+        add_header X-Content-Type-Options "nosniff" always;
+        try_files $uri =404;
+    }
+
+    # The page itself must never be cached: after a deploy every visitor gets the new version at once.
     location / {
+        add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+        add_header X-Frame-Options "DENY" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
         try_files $uri /index.html;
     }
 }

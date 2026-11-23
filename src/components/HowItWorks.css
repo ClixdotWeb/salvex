@@ -3,8 +3,10 @@
    ========================================================================== */
 
 .hw {
-  --hw-bg: #070B14;
-  --hw-blue: var(--color-auction-red, #075BFF);
+  --hw-bg: #0B1220;
+  --hw-blue: #1D3A72;          /* dark blue, same family as the rest of the site */
+  --hw-blue-2: #2A4F94;
+  --hw-accent: #9DBBFF;
   --hw-text: #FFFFFF;
   --hw-muted: #94A3B8;
   --hw-line: rgba(226, 232, 240, 0.14);
@@ -13,7 +15,9 @@
   position: relative;
   overflow: hidden;
   isolation: isolate;
-  background: var(--hw-bg);
+  background:
+    radial-gradient(760px 420px at 85% 0%, rgba(30, 58, 138, 0.55), transparent 65%),
+    linear-gradient(160deg, #070B14 0%, #0B1220 55%, #0E1A33 100%);
   color: var(--hw-text);
   padding: 112px 0 120px;
   font-family: var(--font-family, 'Inter', sans-serif);
@@ -30,7 +34,7 @@
   inset: -20% -10% auto auto;
   width: 720px;
   height: 720px;
-  background: radial-gradient(circle, rgba(7, 91, 255, 0.28) 0%, rgba(7, 91, 255, 0) 65%);
+  background: radial-gradient(circle, rgba(30, 63, 128, 0.35) 0%, rgba(30, 63, 128, 0) 65%);
   pointer-events: none;
   z-index: -1;
 }
@@ -100,7 +104,7 @@
 }
 
 .hw-link:focus-visible {
-  outline: 2px solid var(--hw-blue);
+  outline: 2px solid var(--hw-accent);
   outline-offset: 3px;
 }
 
@@ -124,7 +128,7 @@
   display: block;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, #4F8BFF, var(--hw-blue));
+  background: linear-gradient(90deg, var(--hw-blue-2), var(--hw-accent));
   transform-origin: left center;
 }
 
@@ -161,10 +165,10 @@
 }
 
 .hw-step.is-on .hw-node {
-  background: var(--hw-blue);
-  border-color: var(--hw-blue);
+  background: linear-gradient(140deg, var(--hw-blue) 0%, var(--hw-blue-2) 100%);
+  border-color: #6F8FCB;
   color: #FFFFFF;
-  box-shadow: 0 0 0 6px rgba(7, 91, 255, 0.16), 0 12px 32px -8px rgba(7, 91, 255, 0.7);
+  box-shadow: 0 0 0 6px rgba(157, 187, 255, 0.12), 0 12px 32px -8px rgba(30, 63, 128, 0.8);
   transform: scale(1.04);
 }
 
@@ -226,7 +230,7 @@
   }
 
   .hw-line-fill {
-    background: linear-gradient(180deg, #4F8BFF, var(--hw-blue));
+    background: linear-gradient(180deg, var(--hw-blue-2), var(--hw-accent));
     transform-origin: center top;
   }
 

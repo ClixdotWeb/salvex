@@ -11,6 +11,7 @@ import Footer from './components/Footer';
 // Information pages
 import HowItWorksPage from './components/HowItWorksPage';
 import BiddingRulesPage from './components/BiddingRulesPage';
+import { pageTitle } from './utils/pageTitle';
 import AboutPage from './components/AboutPage';
 import ContactPage from './components/ContactPage';
 import FaqPage from './components/FaqPage';
@@ -82,7 +83,7 @@ export const ROUTE_MAP = {
 };
 
 const AUTH_PATHS = new Set(['/login', '/register', '/verify-email', '/forgot-password', '/reset-password']);
-const APP_PATHS = new Set(['/dashboard']);
+const APP_PATHS = new Set(['/dashboard', '/admin']);   // own top bar, no site header or footer
 
 export default function App() {
   const navigate = useNavigate();
@@ -97,6 +98,7 @@ export default function App() {
   // Scroll to the top on every route change
   useLayoutEffect(() => {
     resetScrollToTop();
+    document.title = pageTitle(location.pathname);
   }, [location.pathname]);
 
   const getActiveSection = () => {

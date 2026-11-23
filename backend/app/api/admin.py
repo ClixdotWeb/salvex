@@ -150,6 +150,7 @@ async def list_users(
     kyc_status: Optional[Literal["pending", "verified", "rejected"]] = None,
     status: Optional[Literal["active", "suspended"]] = Query(None, description="Suspended = account switched off"),
     is_email_verified: Optional[bool] = None,
+    is_mobile_verified: Optional[bool] = None,
     db: AsyncSession = Depends(get_db),
 ):
     stmt = select(User)
@@ -179,6 +180,8 @@ async def list_users(
         stmt = stmt.where(User.is_active.is_(status == "active"))
     if is_email_verified is not None:
         stmt = stmt.where(User.is_email_verified.is_(is_email_verified))
+    if is_mobile_verified is not None:
+        stmt = stmt.where(User.is_mobile_verified.is_(is_mobile_verified))
     stmt = stmt.order_by(User.created_at.desc(), User.id.desc())
     return await paginate(db, stmt, params, AdminUserOut)
 

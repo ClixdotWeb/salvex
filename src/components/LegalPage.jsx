@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   FileText,
   ShieldCheck,
@@ -12,7 +13,9 @@ import { legalPoliciesData } from '../data/siteContent';
 import './LegalPage.css';
 
 export default function LegalPage({ initialTab = 'terms' }) {
-  const [activeTab, setActiveTab] = useState(initialTab);
+  // The tab comes from the address (/legal/terms, /legal/privacy ...), so links and the tab title always match.
+  const navigate = useNavigate();
+  const activeTab = initialTab;
 
   const tabs = [
     { id: 'terms', label: 'Terms & Conditions', icon: FileText, data: legalPoliciesData.terms },
@@ -47,7 +50,8 @@ export default function LegalPage({ initialTab = 'terms' }) {
                         key={tab.id}
                         type="button"
                         className={`legal-tab-btn ${isActive ? 'tab-btn-active' : ''}`}
-                        onClick={() => setActiveTab(tab.id)}
+                        onClick={() => navigate(`/legal/${tab.id}`)}
+                        aria-current={isActive ? 'page' : undefined}
                       >
                         <IconC size={16} />
                         <span>{tab.label}</span>
@@ -70,10 +74,9 @@ export default function LegalPage({ initialTab = 'terms' }) {
             </aside>
 
             {/* Document Content Panel */}
-            <main className="legal-content-card">
+            <article className="legal-content-card">
               <div className="document-header">
-                <h2>{currentPolicy.title}</h2>
-                <span className="doc-version-tag">Version 2.4 · Official Publication</span>
+                <h1>{currentPolicy.title}</h1>
               </div>
 
               <div className="document-body">
@@ -100,7 +103,7 @@ export default function LegalPage({ initialTab = 'terms' }) {
                   <p className="signoff-note">Issued for the governance of digital motor vehicle auctions across India.</p>
                 </div>
               </div>
-            </main>
+            </article>
           </div>
         </div>
       </section>

@@ -4,7 +4,9 @@ import {
   BarChart3, Gavel, Truck, Hand, Inbox, LayoutDashboard, LogOut, Package, ReceiptIndianRupee, ScrollText, ShieldCheck, Trophy, Users, Wrench,
 } from 'lucide-react';
 import { useAuth } from '../auth/useAuth';
-import { requestSignOut } from '../components/AccountMenu';
+import AccountMenu, { requestSignOut } from '../components/AccountMenu';
+import NotificationBell from '../components/NotificationBell';
+import { DEMO_PERSONAS_ENABLED } from '../auth/demo';
 import { useSiteConfig } from '../api/site';
 import { getDashboard } from '../api/admin';
 import AdminDashboard from './AdminDashboard';
@@ -71,7 +73,7 @@ function tabFrom(params) {
 
 /** The administrator console. Every screen reads and writes real data through /api/admin. */
 export default function AdminConsole() {
-  const { user } = useAuth();
+  const { user, demoRole } = useAuth();
   const [params, setParams] = useSearchParams();
   const site = useSiteConfig();
   const [auctionVehicle, setAuctionVehicle] = useState(null);
@@ -134,7 +136,13 @@ export default function AdminConsole() {
         </aside>
 
         <div className="adm-main-wrap">
-        <AdminSearchBox onOpen={setOverview} />
+        {/* own top bar: the admin page has no site menu above it */}
+        <div className="adm-topbar">
+          <AdminSearchBox onOpen={setOverview} />
+          {DEMO_PERSONAS_ENABLED && demoRole && <span className="navbar-demo-badge">Demo screens, not signed in</span>}
+          <NotificationBell />
+          {user && <AccountMenu user={user} home="/admin" onLogout={requestSignOut} />}
+        </div>
         <main className="adm-main" key={`${tab}|${linkStatus || ''}|${open || ''}`}>
           {tab === 'dashboard' && <AdminDashboard go={go} />}
           {tab === 'kyc' && <AdminKyc {...link} />}

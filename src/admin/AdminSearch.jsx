@@ -89,7 +89,7 @@ export function BuyerOverview({ id, onClose, go }) {
             <div className="adm-card-head"><h4>Contact</h4>{!b.is_active && <Badge value="rejected" label="Suspended" />}</div>
             <dl className="adm-dl">
               <dt>Buyer ID</dt><dd className="mono"><strong>{b.buyer_id || '—'}</strong></dd>
-              <dt>Mobile</dt><dd>{b.mobile || '—'}</dd>
+              <dt>Mobile</dt><dd>{b.mobile || '—'}{b.mobile && (b.is_mobile_verified ? '' : ' (not verified)')}</dd>
               <dt>Email</dt><dd>{b.email}{b.is_email_verified ? '' : ' (not verified)'}</dd>
               {b.organization && <><dt>Organisation</dt><dd>{b.organization}</dd></>}
               <dt>Joined</dt><dd>{dateTime(b.created_at)}</dd>

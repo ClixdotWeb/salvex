@@ -20,6 +20,7 @@ import {
   ScrollText
 } from 'lucide-react';
 import './HowItWorksPage.css';
+import { BIDDING_RULES as RULES } from '../data/siteContent';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -103,24 +104,6 @@ const STEPS = [
     icon: Truck,
     text: 'Complete the necessary formalities. Successful vehicle bidders can arrange collection from the designated location within the specified pickup period. Spare-part delivery or collection and insurance policy issuance will follow the applicable arrangements.'
   }
-];
-
-const RULES = [
-  ['Registration', 'Only registered users may participate in auctions, subject to the applicable auction terms.'],
-  ['Vehicle Verification', 'Review all available vehicle details, photographs, damage information, and documents before bidding.'],
-  ['Vehicle Inspection', "Inspect the vehicle wherever inspection is permitted. Bidders should assess the vehicle's condition before placing a bid."],
-  ['Responsible Bidding', 'Place bids carefully and only at amounts you are willing and able to pay.'],
-  ['Bid Withdrawal', 'Submitted bids cannot be withdrawn unless permitted under the applicable auction terms and conditions.'],
-  ['Seller Approval', "The highest bid does not automatically guarantee a sale. The sale remains subject to the seller's approval and applicable auction conditions."],
-  ['Auction Service Charges', 'Applicable auction service charges will be communicated to bidders according to the relevant auction terms.'],
-  ['Payment Deadline', 'Successful bidders must complete payment within the specified deadline.'],
-  ['Payment Default', 'Failure to complete payment may result in cancellation of the bid or other action in accordance with the applicable auction terms.'],
-  ['Vehicle Pickup', 'Successful bidders must collect vehicles within the specified period. Any applicable late pickup charges will be communicated in advance.'],
-  ['Documentation', 'Buyers must complete the required documentation and comply with applicable legal requirements.'],
-  ['Spare Parts Purchases', 'Spare-part enquiries, availability, condition, pricing, payment, delivery, and returns are subject to the applicable seller terms.'],
-  ['Insurance Services', 'Insurance coverage, premium, policy issuance, exclusions, and claims are subject to the terms and conditions of the relevant insurer. Policy issuance is subject to insurer approval.'],
-  ['Cancellation & Disputes', 'Cancellations, refunds, and disputes will be handled according to the applicable terms and conditions and relevant laws.'],
-  ['Acceptance of Terms', 'By using Salvex Auction and participating in its services, users agree to the applicable terms and conditions.']
 ];
 
 const pad = (n) => String(n).padStart(2, '0');

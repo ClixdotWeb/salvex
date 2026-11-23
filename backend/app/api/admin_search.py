@@ -126,6 +126,7 @@ class BuyerOverview(BaseModel):
     role: str
     is_active: bool
     is_email_verified: bool
+    is_mobile_verified: bool = False
     created_at: datetime
     kyc_status: str
     kyc_submission_id: Optional[uuid.UUID] = None
@@ -266,7 +267,7 @@ async def buyer_overview(user_id: uuid.UUID, db: AsyncSession = Depends(get_db))
     return BuyerOverview(
         id=user.id, buyer_id=format_buyer_id(user.buyer_number) if user.buyer_number else "", name=user.name, email=user.email,
         mobile=user.mobile or "", organization=user.organization or "", role=user.role, is_active=user.is_active,
-        is_email_verified=user.is_email_verified, created_at=user.created_at, kyc_status=user.kyc_status,
+        is_email_verified=user.is_email_verified, is_mobile_verified=user.is_mobile_verified, created_at=user.created_at, kyc_status=user.kyc_status,
         kyc_submission_id=kyc.id if kyc else None, kyc_submitted_at=kyc.submitted_at if kyc else None,
         bids_total=bids_total, auctions_bid_on=auctions_bid_on,
         won=[WonAuction(auction_id=a.id, vehicle_id=v.id, vehicle_title=_title(v), registration_number=v.registration_number,

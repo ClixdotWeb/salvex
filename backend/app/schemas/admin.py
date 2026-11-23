@@ -30,6 +30,7 @@ class AdminUserOut(BaseModel):
     organization: str
     kyc_status: str
     is_email_verified: bool
+    is_mobile_verified: bool = False
     is_active: bool
     created_at: datetime
     updated_at: datetime

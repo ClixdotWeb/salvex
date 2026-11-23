@@ -124,7 +124,7 @@ async def test_search_results_never_contain_secrets_and_use_the_page_shape(api):
     for item in body["items"]:
         assert not SECRET_FIELDS & set(item)
         assert set(item) == {"id", "buyer_id", "name", "email", "role", "mobile", "organization", "kyc_status",
-                             "is_email_verified", "is_active", "created_at", "updated_at"}
+                             "is_email_verified", "is_mobile_verified", "is_active", "created_at", "updated_at"}
 
 
 async def test_search_pagination_ordering_and_limits(api):

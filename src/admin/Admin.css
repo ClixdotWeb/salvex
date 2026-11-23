@@ -650,3 +650,21 @@
 .adm-deal .adm-actions-row { gap: 12px; padding-top: 16px; border-top: 1px solid #EEF2F7; }
 .adm-deal .adm-actions-row .adm-btn.small { padding: 9px 16px; font-size: 14px; }
 @media (max-width: 560px) { .adm-deal .adm-dl { grid-template-columns: 120px minmax(0, 1fr); } .adm-card.adm-deal { padding: 18px; } }
+
+/* Admin top bar (no site header above the admin console): search, bell, account menu */
+.adm-topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.adm-topbar > :first-child {
+  flex: 1;
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+.adm-topbar .acct-menu {
+  z-index: 1300;
+}
