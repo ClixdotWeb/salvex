@@ -36,7 +36,7 @@ With the virtual environment activated:
 
 ```powershell
 pip install --upgrade pip
-pip install -r requirements.txt
+pip install -r requirements-dev.txt   # development: app + test tools (production images use requirements.txt)
 ```
 
 ---

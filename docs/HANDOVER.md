@@ -46,7 +46,7 @@ Requirements: Node 22, Python 3.12, PostgreSQL 15+.
 cd backend
 python -m venv .venv
 .venv\Scripts\activate          # Windows   (macOS/Linux: source .venv/bin/activate)
-pip install -r requirements.txt
+pip install -r requirements-dev.txt   # development: app + test tools (production images use requirements.txt)
 copy .env.example .env          # then edit DATABASE_URL and APP_SECRET_KEY
 alembic upgrade head
 python -m app.cli create-admin --email you@company.com --name "Your Name"   # asks for a password
@@ -68,9 +68,11 @@ The company database is private to the Coolify network, so the backend must run 
    * Persistent volume mounted at `/data/private` (uploaded documents and photos).
    * Environment variables (see `backend/.env.example`):
      `APP_ENV=production`, `APP_SECRET_KEY` (long random), `DATABASE_URL` (company DB, private address),
-     `FRONTEND_ORIGINS=https://your-domain`, `PUBLIC_SITE_URL=https://your-domain`, `TRUSTED_PROXY_COUNT=1`,
-     `EMAIL_PROVIDER=smtp` + `SMTP_HOST/PORT/USER/PASSWORD/FROM_EMAIL`, `COMPANY_BANK_*` (account shown to winners).
-   * Before the first start and after each release: run `alembic upgrade head` (Coolify pre-deployment command).
+     `FRONTEND_ORIGINS=https://your-domain`, `PUBLIC_SITE_URL=https://your-domain`, `TRUSTED_PROXY_COUNT=2` (Coolify's proxy + the website's nginx),
+     `EMAIL_PROVIDER=smtp` + `SMTP_HOST/PORT/USER/PASSWORD/FROM_EMAIL`, `MOBILE_OTP_REQUIRED=false` until SMS exists,
+     `COMPANY_BANK_*` (required only when `ONLINE_PAYMENT_FLOW=true`).
+   * Before the first start and after each release: run `alembic upgrade head` (Coolify pre-deployment command),
+     **after a fresh backup**. Full procedure, checklist and rollback: [RELEASE_RUNBOOK.md](RELEASE_RUNBOOK.md).
    * Create the first admin once: `python -m app.cli create-admin --email ... --name "..."`.
 2. **Website service** – Dockerfile at the project root (nginx).
    * Runtime variable `BACKEND_URL` = internal address of the backend service, e.g. `http://salvex-api:8000`.
@@ -94,7 +96,10 @@ cd backend
 .venv\Scripts\python -m pytest -q -p no:cacheprovider     # uses a LOCAL database whose name contains "test"
 cd ..
 npm run lint && npm run build && npm run check:no-demo
-npx playwright test --project=desktop                     # needs the dev server
+npm run check:csp                                         # the website security policy, on the production build
+npx playwright test                                       # desktop, mobile and demo (starts the dev servers)
+npm audit --omit=dev
+cd backend && pip-audit -r requirements.txt               # see the reviewed exceptions in .github/workflows/ci.yml
 ```
 
 The test runner refuses to use any database that is not local or whose name does not contain "test".
@@ -115,7 +120,7 @@ The test runner refuses to use any database that is not local or whose name does
 * Never commit `.env` files. Rotate the database password that was shared during development.
 * Keep one backend worker unless a shared rate limiter (Redis) is added.
 * Uploaded files are never served directly; every download checks permissions.
-* Photo location data (EXIF) is not yet removed from uploaded photos (needs the Pillow library).
+* Photo location data (EXIF, XMP, IPTC) is removed on the server for every upload (see section 10).
 
 ## 8. Business settings (backend variables, no code change)
 
@@ -129,7 +134,8 @@ The test runner refuses to use any database that is not local or whose name does
 
 ## 9. First launch with an empty database
 
-1. Deploy, then run the migrations (`alembic upgrade head`; the Docker image does this on start).
+1. Deploy, then run the migrations (`alembic upgrade head` as the Coolify pre-deployment command; the image does
+   NOT migrate on its own). See [RELEASE_RUNBOOK.md](RELEASE_RUNBOOK.md).
 2. Create the first administrator: `python -m app.cli create-admin --email you@company.example --name "Your Name"` (it asks for the password; never put it in chat or files).
 3. Admin > Auctions > Bulk upload (Ready to Lift vehicles: Admin > Ready to Lift > Bulk upload): download the Excel template, fill it (one vehicle per row), choose the file.
    Every row is checked first and problems are listed per row. Choose the photos folder (photos named with the
