@@ -1,4 +1,5 @@
-from typing import List, Optional
+import ipaddress
+from typing import List, Optional, Tuple
 from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from app.core.db_url import to_async_url, to_sync_url
@@ -72,7 +73,14 @@ class Settings(BaseSettings):
     RATE_LIMIT_ENABLED: bool = Field(default=True, description="Must stay True outside development/test")
     TRUSTED_PROXY_COUNT: int = Field(
         default=0, ge=0, le=5,
-        description="Number of reverse proxies in front of the API whose X-Forwarded-For is trusted"
+        description="Number of reverse proxies in front of the API whose X-Forwarded-For is trusted "
+                    "(Coolify: 2 = Coolify's proxy + the website's nginx)"
+    )
+    TRUSTED_PROXY_NETWORKS: str = Field(
+        default="127.0.0.0/8,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7",
+        description="X-Forwarded-For is only read when the direct connection comes from one of these networks "
+                    "(the private Docker network). A request reaching the API from anywhere else is counted by "
+                    "its own address, whatever header it sends."
     )
 
     # ---------------- One-time codes ----------------
@@ -205,6 +213,17 @@ class Settings(BaseSettings):
     def blank_domain_is_none(cls, v: Optional[str]) -> Optional[str]:
         return v.strip() or None if v else None
 
+    @field_validator("TRUSTED_PROXY_NETWORKS")
+    @classmethod
+    def validate_proxy_networks(cls, v: str) -> str:
+        for part in (p.strip() for p in v.split(",")):
+            if part:
+                try:
+                    ipaddress.ip_network(part, strict=False)
+                except ValueError:
+                    raise ValueError("TRUSTED_PROXY_NETWORKS must be a comma-separated list of IP networks")
+        return v
+
     @field_validator("DATABASE_URL")
     @classmethod
     def validate_postgres_url(cls, v: str) -> str:
@@ -276,6 +295,11 @@ class Settings(BaseSettings):
         if self.COOKIE_SECURE is not None:
             return self.COOKIE_SECURE
         return self.is_production_like
+
+    @property
+    def trusted_proxy_networks(self) -> Tuple[ipaddress._BaseNetwork, ...]:
+        return tuple(ipaddress.ip_network(p.strip(), strict=False)
+                     for p in self.TRUSTED_PROXY_NETWORKS.split(",") if p.strip())
 
     @property
     def auth_cookie_name(self) -> str:

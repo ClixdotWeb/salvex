@@ -24,4 +24,7 @@ USER salvex
 
 EXPOSE 8000
 # Keep ONE worker: the built-in rate limiter counts per process (the auction closer is safe either way).
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*"]
+# --no-proxy-headers: uvicorn must NOT replace the connection address with X-Forwarded-For (with "*" it
+# would take the first, client-written entry). The app reads the header itself, safely: set
+# TRUSTED_PROXY_COUNT=2 on Coolify (Coolify's proxy + the website's nginx). See app/core/rate_limit.py.
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--no-proxy-headers"]

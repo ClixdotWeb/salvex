@@ -34,7 +34,7 @@ def pytest_configure(config):
     os.environ["MOBILE_OTP_REQUIRED"] = "false"
     # Anything written by the developer email outbox during tests goes to a temp folder, never the repo
     os.environ["DEV_OUTBOX_PATH"] = str(Path(tempfile.gettempdir()) / "salvex-test-outbox" / "outbox.jsonl")
-    for name in ("COOKIE_SECURE", "COOKIE_SAMESITE", "COOKIE_DOMAIN", "EMAIL_PROVIDER", "SMS_PROVIDER", "RATE_LIMIT_ENABLED", "TRUSTED_PROXY_COUNT"):
+    for name in ("COOKIE_SECURE", "COOKIE_SAMESITE", "COOKIE_DOMAIN", "EMAIL_PROVIDER", "SMS_PROVIDER", "RATE_LIMIT_ENABLED", "TRUSTED_PROXY_COUNT", "TRUSTED_PROXY_NETWORKS"):
         os.environ.pop(name, None)  # tests start from the defaults, whatever the developer's shell has set
 
 

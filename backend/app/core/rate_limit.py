@@ -15,6 +15,7 @@ strictest), while distributed guessing against one account is still slowed down.
 There is deliberately NO permanent or long account lockout: every block expires on its own.
 """
 import hashlib
+import ipaddress
 import threading
 import time
 from collections import deque
@@ -159,19 +160,41 @@ def email_key(email: str) -> str:
     return _digest(email)
 
 
+def _parse_ip(value: str) -> Optional[str]:
+    try:
+        return str(ipaddress.ip_address(value.strip()))
+    except ValueError:
+        return None
+
+
+def _is_trusted_proxy(peer: str) -> bool:
+    ip = _parse_ip(peer)
+    if ip is None:
+        return False
+    address = ipaddress.ip_address(ip)
+    return any(address in network for network in settings.trusted_proxy_networks)
+
+
 def client_ip(request: Request) -> str:
     """
-    The client's IP address. X-Forwarded-For is only believed when TRUSTED_PROXY_COUNT says
-    how many proxies we run behind (otherwise anyone could fake their IP with a header).
+    The client's IP address, used as a rate-limit key.
+
+    X-Forwarded-For can be written by anyone, so it is only read when BOTH are true:
+      * TRUSTED_PROXY_COUNT says how many of our own proxies sit in front of the API, and
+      * the direct connection comes from TRUSTED_PROXY_NETWORKS (our private Docker network).
+    Each proxy appends the address it received the request from, so the real client is the entry
+    TRUSTED_PROXY_COUNT places from the right. Anything a client puts further left is ignored.
+    The server must NOT rewrite the connection address from the header itself (uvicorn runs with
+    --no-proxy-headers, see backend/Dockerfile), otherwise the peer below would already be forged.
     """
     peer = request.client.host if request.client else "unknown"
     count = settings.TRUSTED_PROXY_COUNT
-    if count <= 0:
+    if count <= 0 or not _is_trusted_proxy(peer):
         return peer
     forwarded = [p.strip() for p in request.headers.get("x-forwarded-for", "").split(",") if p.strip()]
-    if len(forwarded) >= count:
-        return forwarded[-count]
-    return peer
+    if len(forwarded) < count:
+        return peer
+    return _parse_ip(forwarded[-count]) or peer
 
 
 def _rules(scope: str, request: Request, email: Optional[str]) -> List[Rule]:

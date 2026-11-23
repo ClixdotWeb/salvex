@@ -40,6 +40,9 @@ async def lifespan(app: FastAPI):
     get_email_service()  # fail at startup (not at the first registration) if email is misconfigured
     if not settings.cookie_secure:
         logger.warning("Auth cookies are NOT marked Secure (allowed only in development/test).")
+    if settings.is_production_like and settings.TRUSTED_PROXY_COUNT == 0:
+        logger.warning("TRUSTED_PROXY_COUNT=0: behind a proxy every visitor shares one address for rate limits "
+                       "(Coolify needs 2).")
     closer = None
     if closer_enabled():
         from app.db.session import AsyncSessionLocal
