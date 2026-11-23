@@ -40,6 +40,7 @@ PROD_ENV = {
     "SMTP_USER": "smtp-user",
     "SMTP_PASSWORD": "smtp-password-value",
     "RATE_LIMIT_ENABLED": "true",
+    "ONLINE_PAYMENT_FLOW": "false",   # the client's setting: payment is arranged outside the website
 }
 
 
@@ -288,3 +289,53 @@ async def test_smtp_without_configuration_fails_loudly_instead_of_pretending(mon
 def test_mask_email_hides_the_identity():
     assert mask_email("person@example.com") == "p***@example.com"
     assert mask_email("nonsense") == "***"
+
+
+# ------------------------------------------------------------------ company bank details (audit BE-01)
+BANK = {
+    "COMPANY_BANK_ACCOUNT_NAME": "Example Company Pvt Ltd",   # fake values: nothing real is committed
+    "COMPANY_BANK_ACCOUNT_NUMBER": "000123456789",
+    "COMPANY_BANK_IFSC": "ABCD0123456",
+    "COMPANY_BANK_NAME": "Example Bank",
+}
+
+
+def test_without_online_payment_production_does_not_need_bank_details(monkeypatch):
+    s = make_settings(monkeypatch, ONLINE_PAYMENT_FLOW="false", **{k: None for k in BANK})
+    assert s.ONLINE_PAYMENT_FLOW is False
+
+
+def test_online_payment_with_complete_bank_details_is_accepted(monkeypatch):
+    s = make_settings(monkeypatch, ONLINE_PAYMENT_FLOW="true", COMPANY_BANK_BRANCH=None, **BANK)
+    assert s.COMPANY_BANK_IFSC == "ABCD0123456" and s.COMPANY_BANK_BRANCH == ""   # the branch is optional
+
+
+@pytest.mark.parametrize("missing", list(BANK))
+def test_online_payment_refuses_to_start_when_a_bank_detail_is_missing(monkeypatch, missing):
+    with pytest.raises(ValidationError) as exc:
+        make_settings(monkeypatch, ONLINE_PAYMENT_FLOW="true", **{**BANK, missing: ""})
+    message = str(exc.value)
+    assert "ONLINE_PAYMENT_FLOW needs the company bank details" in message and missing in message
+    assert BANK["COMPANY_BANK_ACCOUNT_NUMBER"] not in message   # names the setting, never a value
+
+
+def test_online_payment_refuses_to_start_with_no_bank_details_at_all(monkeypatch):
+    with pytest.raises(ValidationError, match="COMPANY_BANK_ACCOUNT_NUMBER"):
+        make_settings(monkeypatch, ONLINE_PAYMENT_FLOW="true", **{k: None for k in BANK})
+
+
+@pytest.mark.parametrize("name, value", [
+    ("COMPANY_BANK_IFSC", "ABCD1234567"),       # fifth character must be 0
+    ("COMPANY_BANK_IFSC", "ABC0123456"),        # too short
+    ("COMPANY_BANK_ACCOUNT_NUMBER", "12345678"),  # too short
+    ("COMPANY_BANK_ACCOUNT_NUMBER", "1234ABCD5678"),
+])
+def test_a_mistyped_ifsc_or_account_number_is_refused(monkeypatch, name, value):
+    with pytest.raises(ValidationError, match=name):
+        make_settings(monkeypatch, ONLINE_PAYMENT_FLOW="true", **{**BANK, name: value})
+
+
+def test_bank_details_are_tidied(monkeypatch):
+    s = make_settings(monkeypatch, ONLINE_PAYMENT_FLOW="true",
+                      **{**BANK, "COMPANY_BANK_IFSC": " abcd0123456 ", "COMPANY_BANK_ACCOUNT_NUMBER": "0001 2345-6789"})
+    assert s.COMPANY_BANK_IFSC == "ABCD0123456" and s.COMPANY_BANK_ACCOUNT_NUMBER == "000123456789"

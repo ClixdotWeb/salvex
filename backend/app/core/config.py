@@ -1,4 +1,5 @@
 import ipaddress
+import re
 from typing import List, Optional, Tuple
 from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -7,6 +8,8 @@ from app.core.db_url import to_async_url, to_sync_url
 # Environments where relaxed (developer-friendly) behaviour is allowed.
 DEV_ENVIRONMENTS = {"development", "test"}
 ALL_ENVIRONMENTS = {"development", "test", "staging", "production"}
+REQUIRED_BANK_SETTINGS = ("COMPANY_BANK_ACCOUNT_NAME", "COMPANY_BANK_ACCOUNT_NUMBER", "COMPANY_BANK_IFSC",
+                          "COMPANY_BANK_NAME")  # the branch is optional
 SMS_PROVIDERS = {"console"}  # add the company's provider here when it is chosen (see app/services/sms.py)
 
 # Substrings that mark a secret key as a placeholder/sample value.
@@ -213,6 +216,22 @@ class Settings(BaseSettings):
     def blank_domain_is_none(cls, v: Optional[str]) -> Optional[str]:
         return v.strip() or None if v else None
 
+    @field_validator("COMPANY_BANK_IFSC")
+    @classmethod
+    def validate_ifsc(cls, v: str) -> str:
+        v = (v or "").strip().upper()
+        if v and not re.fullmatch(r"[A-Z]{4}0[A-Z0-9]{6}", v):
+            raise ValueError("COMPANY_BANK_IFSC must be an 11-character IFSC code (for example ABCD0123456)")
+        return v
+
+    @field_validator("COMPANY_BANK_ACCOUNT_NUMBER")
+    @classmethod
+    def validate_account_number(cls, v: str) -> str:
+        v = re.sub(r"[\s-]", "", v or "")
+        if v and not re.fullmatch(r"[0-9]{9,18}", v):
+            raise ValueError("COMPANY_BANK_ACCOUNT_NUMBER must be 9 to 18 digits")
+        return v
+
     @field_validator("TRUSTED_PROXY_NETWORKS")
     @classmethod
     def validate_proxy_networks(cls, v: str) -> str:
@@ -267,6 +286,11 @@ class Settings(BaseSettings):
             if self.MOBILE_OTP_REQUIRED and self.SMS_PROVIDER == "console":
                 problems.append("MOBILE_OTP_REQUIRED needs a real SMS_PROVIDER (the developer outbox is not "
                                 "allowed); set MOBILE_OTP_REQUIRED=false until SMS is ready")
+            if self.ONLINE_PAYMENT_FLOW:
+                # winners are shown this account to pay into; without it they cannot pay
+                missing = [name for name in REQUIRED_BANK_SETTINGS if not str(getattr(self, name)).strip()]
+                if missing:
+                    problems.append("ONLINE_PAYMENT_FLOW needs the company bank details: " + ", ".join(missing))
             origins = self.cors_origins
             if not origins:
                 problems.append("FRONTEND_ORIGINS must list the website origin(s)")
