@@ -25,7 +25,11 @@ server {
     # /api gets none from here: the API sends its own headers (no duplicates).
 
     location ~ ^/(api|docs|openapi\.json) {
-        proxy_pass ${BACKEND_URL};
+        # Look the backend up on EVERY request (Docker's DNS at 127.0.0.11), not once at start-up:
+        # a redeployed backend gets a new internal IP, and a cached one gives 502 until nginx restarts.
+        resolver 127.0.0.11 valid=10s ipv6=off;
+        set $salvex_backend ${BACKEND_URL};
+        proxy_pass $salvex_backend;
         proxy_set_header Host $host;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;

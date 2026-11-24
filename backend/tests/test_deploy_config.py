@@ -51,3 +51,11 @@ def test_hsts_is_sent_only_for_https_requests():
 
 def test_the_header_file_is_copied_into_the_website_image():
     assert "COPY deploy/security-headers.conf /etc/nginx/snippets/security-headers.conf" in WEB_DOCKERFILE
+
+
+def test_the_backend_address_is_looked_up_on_every_request():
+    """A redeployed backend gets a new internal IP; nginx must not keep the old one (502 until restart)."""
+    api = next(body for name, body in _locations().items() if "api" in name)
+    assert "resolver 127.0.0.11" in api
+    assert re.search(r"set \$salvex_backend \$\{BACKEND_URL\};", api)
+    assert "proxy_pass $salvex_backend;" in api
