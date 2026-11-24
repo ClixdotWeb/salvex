@@ -39,6 +39,10 @@ test('admin sees who won and for how much', async ({ page, isMobile }) => {
   await expect(modal).toContainText('faheem@example.com');
   await expect(modal).toContainText('FK Motors');
   await expect(modal.locator('tbody tr')).toHaveCount(2);
+  // contact the winner by phone or WhatsApp; no email button (it needs a mail app on the computer)
+  await expect(modal.getByRole('link', { name: /Call/ })).toHaveAttribute('href', /^tel:\+?91/);
+  await expect(modal.getByRole('link', { name: /WhatsApp/ })).toHaveAttribute('href', /^https:\/\/wa\.me\/91\d+$/);
+  await expect(page.locator('a[href^="mailto:"]')).toHaveCount(0);
   await page.screenshot({ path: test.info().outputPath('result.png') });
 });
 

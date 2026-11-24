@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Phone, Search, Trophy } from 'lucide-react';
+import { MessageCircle, Phone, Search, Trophy } from 'lucide-react';
 import { getResult, listResults } from '../api/admin';
 import { categoryLabel } from '../api/auctions';
 import { DealSummary, FeeEntries } from './DealCard';
@@ -120,8 +120,8 @@ function ResultDetail({ id, onClose }) {
                 <dt>Account</dt><dd>{r.winner_is_active ? 'Active' : 'Suspended'} · since {dateTime(r.winner_since)}</dd>
               </dl>
               <div className="adm-actions-row" style={{ justifyContent: 'flex-start' }}>
-                <a className="adm-btn small" href={`mailto:${r.winner_email}`}><Mail size={14} /> Email</a>
-                {r.winner_mobile && <a className="adm-btn small" href={`tel:${r.winner_mobile.replace(/[^0-9+]/g, '')}`}><Phone size={14} /> Call</a>}
+                {r.winner_mobile && <a className="adm-btn small primary" href={`tel:${r.winner_mobile.replace(/[^0-9+]/g, '')}`}><Phone size={14} /> Call</a>}
+                {r.winner_mobile && <a className="adm-btn small" href={`https://wa.me/${r.winner_mobile.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer"><MessageCircle size={14} /> WhatsApp</a>}
               </div>
             </div>
 

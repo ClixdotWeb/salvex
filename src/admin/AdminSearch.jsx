@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Car, ExternalLink, Gavel, Hand, Loader2, Mail, MessageCircle, Phone, Search, ShieldCheck, User, Wrench, X } from 'lucide-react';
+import { Car, ExternalLink, Gavel, Hand, Loader2, MessageCircle, Phone, Search, ShieldCheck, User, Wrench, X } from 'lucide-react';
 import { adminSearch, getBuyerOverview, getVehicleOverview } from '../api/admin';
 import { ownPhotoUrl, vehicleTitle } from '../api/vehicles';
 import { ENQUIRY_STATUS } from '../api/readyToLift';
@@ -97,7 +97,6 @@ export function BuyerOverview({ id, onClose, go }) {
             <div className="adm-actions-row" style={{ justifyContent: 'flex-start' }}>
               {b.mobile && <a className="adm-btn small primary" href={`tel:${digits(b.mobile)}`}><Phone size={14} /> Call</a>}
               {b.mobile && <a className="adm-btn small" href={`https://wa.me/${digits(b.mobile).replace('+', '')}`} target="_blank" rel="noopener noreferrer"><MessageCircle size={14} /> WhatsApp</a>}
-              <a className="adm-btn small" href={`mailto:${b.email}`}><Mail size={14} /> Email</a>
             </div>
           </div>
           <div className="adm-card">

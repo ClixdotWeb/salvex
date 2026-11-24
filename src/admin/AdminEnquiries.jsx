@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ExternalLink, Mail, MessageCircle, Phone, Search } from 'lucide-react';
+import { ExternalLink, MessageCircle, Phone, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ENQUIRY_STATUS, adminGetEnquiry, adminListEnquiries, adminUpdateEnquiry } from '../api/readyToLift';
 import Select from '../components/ui/Select';
@@ -100,7 +100,6 @@ function EnquiryDetail({ id, onClose, onSaved }) {
             <div className="adm-actions-row" style={{ justifyContent: 'flex-start' }}>
               {e.buyer_mobile && <a className="adm-btn small primary" href={`tel:${digits(e.buyer_mobile)}`}><Phone size={14} /> Call</a>}
               {e.buyer_mobile && <a className="adm-btn small" href={`https://wa.me/${digits(e.buyer_mobile).replace('+', '')}`} target="_blank" rel="noopener noreferrer"><MessageCircle size={14} /> WhatsApp</a>}
-              <a className="adm-btn small" href={`mailto:${e.buyer_email}?subject=${encodeURIComponent(`${e.vehicle_title} (${e.number})`)}`}><Mail size={14} /> Email</a>
             </div>
           </div>
           <div className="adm-card">

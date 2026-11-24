@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ImagePlus, Mail, MessageCircle, Phone, Plus, Search } from 'lucide-react';
+import { ImagePlus, MessageCircle, Phone, Plus, Search } from 'lucide-react';
 import {
   REQUEST_STATUS, adminCreatePart, adminGetPartRequest, adminListPartRequests, adminListParts, adminPartPhoto, adminUpdatePart,
   adminUpdatePartRequest, partPhotoUrl,
@@ -128,7 +128,6 @@ function RequestDetail({ request: r, onClose, onSaved }) {
         <div className="adm-actions-row" style={{ justifyContent: 'flex-start' }}>
           {phone && <a className="adm-btn small primary" href={`tel:${digits(phone)}`}><Phone size={14} /> Call</a>}
           {phone && <a className="adm-btn small" href={`https://wa.me/${digits(phone).replace('+', '')}`} target="_blank" rel="noopener noreferrer"><MessageCircle size={14} /> WhatsApp</a>}
-          <a className="adm-btn small" href={`mailto:${r.user_email}?subject=${encodeURIComponent(`${r.part_name} (${r.number})`)}`}><Mail size={14} /> Email</a>
         </div>
         <form className="adm-form" onSubmit={save}>
           <label className="adm-field"><span>Status</span>

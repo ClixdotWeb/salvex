@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, MessageCircle, Phone } from 'lucide-react';
+import { MessageCircle, Phone } from 'lucide-react';
 import { CONTACT_STATUS, adminGetContactMessage, adminListContactMessages, adminUpdateContactMessage } from '../api/contact';
 import { AdmTable, Badge, Empty, ErrorBox, Modal, Notice, Pager, Spinner, dateTime, pickFilter, useLoad } from './ui';
 import Select from '../components/ui/Select';
@@ -7,7 +7,7 @@ import Select from '../components/ui/Select';
 const TONE = { new: 'pending', in_progress: 'upcoming', closed: 'draft' };
 const waLink = (n) => `https://wa.me/${n.replace(/[^0-9]/g, '')}`;
 
-/** Messages sent from the public Contact page. Reply by email / phone / WhatsApp, then mark the status. */
+/** Messages sent from the public Contact page. Reply by phone or WhatsApp, then mark the status. */
 const FILTERS = [{ value: 'new' }, { value: 'in_progress' }, { value: 'closed' }, { value: '' }];
 
 export default function AdminMessages({ deepLink = {}, onDeepLinkClose }) {
@@ -26,7 +26,7 @@ export default function AdminMessages({ deepLink = {}, onDeepLinkClose }) {
       <div className="adm-section-head">
         <div>
           <h2>Contact messages</h2>
-          <p className="adm-muted">Enquiries from the Contact page. Reply by email, phone or WhatsApp, then update the status.</p>
+          <p className="adm-muted">Enquiries from the Contact page. Reply by phone or WhatsApp, then update the status.</p>
         </div>
       </div>
       <div className="adm-tabs">
@@ -78,7 +78,6 @@ function MessageDetail({ message: m, onClose, onSaved }) {
     catch (err) { setError(err.message); setBusy(false); }
   };
 
-  const replySubject = encodeURIComponent(`Re: ${m.subject} (${m.number})`);
   return (
     <Modal title={`Message ${m.number}`} onClose={onClose}>
       <div className="adm-detail">
@@ -89,7 +88,6 @@ function MessageDetail({ message: m, onClose, onSaved }) {
           <dt>Received</dt><dd>{dateTime(m.created_at)}</dd>
         </dl>
         <div className="adm-actions-row" style={{ justifyContent: 'flex-start' }}>
-          <a className="adm-btn small" href={`mailto:${m.email}?subject=${replySubject}`}><Mail size={14} /> Email</a>
           <a className="adm-btn small" href={`tel:${m.mobile.replace(/[^0-9+]/g, '')}`}><Phone size={14} /> Call</a>
           <a className="adm-btn small" href={waLink(m.mobile)} target="_blank" rel="noopener noreferrer"><MessageCircle size={14} /> WhatsApp</a>
         </div>
