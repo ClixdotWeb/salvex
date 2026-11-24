@@ -69,7 +69,7 @@ The company database is private to the Coolify network, so the backend must run 
    * Environment variables (see `backend/.env.example`):
      `APP_ENV=production`, `APP_SECRET_KEY` (long random), `DATABASE_URL` (company DB, private address),
      `FRONTEND_ORIGINS=https://your-domain`, `PUBLIC_SITE_URL=https://your-domain`, `TRUSTED_PROXY_COUNT=2` (Coolify's proxy + the website's nginx),
-     `EMAIL_PROVIDER=smtp` + `SMTP_HOST/PORT/USER/PASSWORD/FROM_EMAIL`, `MOBILE_OTP_REQUIRED=false` until SMS exists,
+     `EMAIL_PROVIDER=smtp` + `SMTP_HOST/PORT/USER/PASSWORD/FROM_EMAIL`, `MOBILE_OTP_REQUIRED=false` until SMS exists (sign-up always uses the email code; `true` makes bidding need a mobile confirmed by SMS from the dashboard),
      `COMPANY_BANK_*` (required only when `ONLINE_PAYMENT_FLOW=true`).
    * Before the first start and after each release: run `alembic upgrade head` (Coolify pre-deployment command),
      **after a fresh backup**. Full procedure, checklist and rollback: [RELEASE_RUNBOOK.md](RELEASE_RUNBOOK.md).

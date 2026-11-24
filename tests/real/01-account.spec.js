@@ -1,5 +1,6 @@
 // Account journey against the REAL backend and local database (nothing mocked).
-// SMS and email codes are read from the developer outbox: this proves the code checks, not delivery.
+// Sign-up is finished with the EMAIL code, read from the developer outbox: this proves the code checks,
+// not delivery (the test server always runs with the console email provider).
 import { test, expect } from '@playwright/test';
 import { db, lastCode, outboxSize, recordApi, go, stamp, clickFor } from './helpers';
 
@@ -50,7 +51,7 @@ test.describe.serial('account (real backend)', () => {
 
   let firstCode;
   test('registering again before finishing sign-up: still one account, the newest details win, a new code is sent', async ({ page }) => {
-    firstCode = lastCode(MOBILE);
+    firstCode = lastCode(EMAIL);
     await go(page, '/register');
     await page.fill('#reg-name', 'Real Buyer');
     await page.fill('#reg-email', EMAIL);
@@ -65,23 +66,24 @@ test.describe.serial('account (real backend)', () => {
     expect(user().password_hash).not.toBe(before);                  // re-hashed (new salt) for the newest submission
   });
 
-  test('SMS code: an old or wrong code is refused, the newest one creates the session and survives a reload', async ({ page }) => {
+  test('email code: an old or wrong code is refused, the newest one finishes sign-up, signs in and survives a reload', async ({ page }) => {
     await go(page, '/verify-email');
+    await expect(page.getByRole('heading', { name: 'Verify your email' })).toBeVisible();
     await page.fill('#verify-email', EMAIL);
-    const real = lastCode(MOBILE);
+    const real = lastCode(EMAIL);
     for (const wrong of [firstCode !== real ? firstCode : '000000', real === '111111' ? '222222' : '111111']) {
       await page.fill('#verify-code', wrong);
-      const bad = await clickFor(page, submit(page), 'POST', '/api/auth/verify-mobile');
+      const bad = await clickFor(page, submit(page), 'POST', '/api/auth/verify-email');
       expect(bad.status).toBeGreaterThanOrEqual(400);
     }
     await expect(page.locator('[role="alert"]').first()).toBeVisible();
-    expect(user().is_mobile_verified).toBe(false);
+    expect(user().is_email_verified).toBe(false);
 
     await page.fill('#verify-code', real);
-    const ok = await clickFor(page, submit(page), 'POST', '/api/auth/verify-mobile');
+    const ok = await clickFor(page, submit(page), 'POST', '/api/auth/verify-email');
     expect(ok.status).toBe(200);
     await expect(page).toHaveURL(/\/dashboard/);
-    expect(user().is_mobile_verified).toBe(true);
+    expect(user()).toMatchObject({ is_email_verified: true, is_mobile_verified: false });   // mobile comes later
     expect(db('select count(*)::int n from auth_sessions where user_id = %s and revoked_at is null', user().id)[0].n).toBeGreaterThan(0);
 
     await page.reload();
@@ -89,29 +91,12 @@ test.describe.serial('account (real backend)', () => {
     expect((await page.request.get('/api/auth/me')).status()).toBe(200);
   });
 
-  test('email code from the dashboard: wrong code refused, right code marks the email verified', async ({ page }) => {
-    const api = recordApi(page);
+  test('after sign-up the dashboard asks for no more codes (mobile verification is off on this server)', async ({ page }) => {
     await signIn(page);
     await expect(page).toHaveURL(/\/dashboard/);
-    const card = page.locator('section', { has: page.locator('#ev-title') });
-    await expect(card).toBeVisible();
-    const before = outboxSize();
-    await card.getByRole('button', { name: /Email me a code|Send a new code/ }).click();
-    await expect(card.locator('input[autocomplete="one-time-code"]')).toBeVisible();
-    expect(api.last('POST', '/api/auth/email/send-code').status).toBe(200);
-    const real = lastCode(EMAIL, before);
-
-    await card.locator('input[autocomplete="one-time-code"]').fill(real === '000000' ? '111111' : '000000');
-    await card.getByRole('button', { name: /^Verify/ }).click();
-    await expect.poll(() => api.last('POST', '/api/auth/email/verify')?.status).toBeGreaterThanOrEqual(400);
-    expect(user().is_email_verified).toBe(false);
-
-    await card.locator('input[autocomplete="one-time-code"]').fill(real);
-    await card.getByRole('button', { name: /^Verify/ }).click();
-    await expect.poll(() => api.last('POST', '/api/auth/email/verify')?.status).toBe(200);
-    expect(user().is_email_verified).toBe(true);
-    await page.reload();
-    await expect(page.locator('#ev-title')).toHaveCount(0);           // card gone after reload
+    await expect(page.locator('#ev-title')).toHaveCount(0);              // email already proven at sign-up
+    await expect(page.locator('#mv-title')).toHaveCount(0);              // no mobile card while the switch is off
+    expect((await (await page.request.get('/api/site-config')).json()).mobile_otp).toBe(false);
   });
 
   test('profile: changes are saved to the database and shown again after a reload', async ({ page }) => {

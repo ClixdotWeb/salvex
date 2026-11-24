@@ -3,6 +3,7 @@
 - **Date:** 24 November 2026
 - **Branch:** `feature/full-frontend`
 - **Scope:** frontend features, exercised through the real website. The backend audit is a separate phase.
+- **Updated 24 Nov:** sign-up is now **email first**. The emailed code finishes sign-up; the mobile is confirmed later, before bidding, only when `MOBILE_OTP_REQUIRED=true`. Rows 3, 5 and 6 and findings F-1 and F-2 are updated.
 
 ## How this was tested
 
@@ -16,10 +17,10 @@ The checks drove a real Chromium browser against the real API and the **local de
   - it reloads the page to confirm the data persisted
   - it tries invalid input and access without permission
 - **Admin account:** a separate local verification admin (`verify.admin@example.com`). Its password lives only in an environment variable and is never stored in the repo.
-- **Email and SMS:** there is **no real provider** in development. The backend writes each code to a developer outbox file, and the tests read the codes from there. This proves the **code checks** work. It does **not** prove that a message reaches a phone or inbox (see BLOCKED).
+- **Email and SMS:** the test server is always started with the console (developer outbox) providers, even if `backend/.env` holds real SMTP settings, so test accounts are never emailed. The backend writes each code to the outbox file, and the tests read the codes from there. This proves the **code checks** work. It does **not** prove that a message reaches a phone or inbox (see BLOCKED).
 - **Payment:** online payment is switched off for this client (`ONLINE_PAYMENT_FLOW=false`), so no payment screen exists to test.
 
-**Final run:** 26 tests, 26 passed, 0 failed, 0 flaky (13.0 min; an earlier full run also passed 26/26 in 8.7 min). The evidence is in `test-results/real-results.json`, which is regenerated on every run.
+**Final run (email-first sign-up):** 26 tests, 26 passed, 0 failed, 0 flaky (7.8 min). The earlier SMS-first version also passed 26/26. The evidence is in `test-results/real-results.json`, which is regenerated on every run.
 
 ## Matrix
 
@@ -27,10 +28,10 @@ The checks drove a real Chromium browser against the real API and the **local de
 |---|---|---|---|---|---|---|---|---|
 | 1 | Registration form checks | Submit an empty form, then an invalid email | Stopped in the browser, no API call | No `POST /register` was sent | none | – | 01 #1 | PASS |
 | 2 | Registration | Fill a valid form | Unverified account created; password hashed | 201; `is_email_verified=false`, `is_mobile_verified=false`; bcrypt hash `$2…`, never the plain password | `POST /api/auth/register` 201 | `users` row | 01 #1 | PASS |
-| 3 | Sign-in before verification | Sign in with an unverified account | Refused | 403 with "Please verify your mobile number…"; `/me` stays 401 | `POST /api/auth/login` 403 | – | 01 #2 | PASS |
-| 4 | Registering again before finishing | Register the same email with new details | Still one account; newest details win; new code sent | 1 row; name replaced; password re-hashed | `POST /register` 201 | `users` count = 1 | 01 #3 | PASS (see finding F-1) |
-| 5 | SMS sign-up code | Enter an old code, a wrong code, then the right one | Old and wrong refused; right one signs in | Old and wrong ≥400 with alert; right one 200 → dashboard; `is_mobile_verified=true`; session row; reload keeps the session | `POST /api/auth/verify-mobile` | `users`, `auth_sessions` | 01 #4 | PASS (code read from the dev outbox) |
-| 6 | Email confirmation in the dashboard | Request a code, enter a wrong one, then the right one | Wrong refused; right one verifies | Wrong ≥400; right 200; `is_email_verified=true`; card gone after reload | `POST /api/auth/email/send-code`, `/email/verify` | `users` | 01 #5 | PASS (dev outbox) |
+| 3 | Sign-in before verification | Sign in with an unverified account | Refused | 403 `email_not_verified` with "Please verify your email address…"; `/me` stays 401 | `POST /api/auth/login` 403 | – | 01 #2 | PASS |
+| 4 | Registering again before finishing | Register the same email with new details | Still one account; newest details win; new code sent to the email | 1 row; name replaced; password re-hashed | `POST /register` 201 | `users` count = 1 | 01 #3 | PASS |
+| 5 | Email sign-up code | Enter an old code, a wrong code, then the right one | Old and wrong refused; right one finishes sign-up and signs in | Old and wrong ≥400 with alert; right one 200 → dashboard; `is_email_verified=true`, `is_mobile_verified=false`; session row; reload keeps the session | `POST /api/auth/verify-email` | `users`, `auth_sessions` | 01 #4 | PASS (code read from the dev outbox) |
+| 6 | Dashboard after sign-up | Sign in after the email code | No more codes asked (switch off) | No email card, no mobile card; site-config `mobile_otp=false` | `GET /api/site-config` | – | 01 #5 | PASS |
 | 7 | Profile edit | Change name and organisation, save | Saved and shown after reload | 200; DB updated; fields refilled after reload | `PATCH /api/users/me` 200 | `users` | 01 #6 | PASS |
 | 8 | Sign-out | Account menu → Sign out | This session ends on the server | 200; this browser's session revoked (active count −1); `/me` 401; `/dashboard` → `/login` | `POST /api/auth/logout` 200 | `auth_sessions.revoked_at` | 01 #7 | PASS |
 | 9 | Sign-in | Wrong password, then the right one | Wrong refused with a message; right one signs in | 401 + alert; then dashboard | `POST /api/auth/login` | – | 01 #8 | PASS |
@@ -89,8 +90,9 @@ The checks drove a real Chromium browser against the real API and the **local de
 No frontend code was changed.
 
 **For the backend phase (not fixed here):**
-- **F-1 (backend, security):** with SMS-first sign-up the email address is never proven at sign-up. A person can register someone else's email with their own mobile number and finish sign-up by SMS. That account cannot bid until its email is confirmed, and the real owner can take it back with "forgot password". The documented "newest registration wins" rule also lets a later sign-up replace an unfinished one. Needs a product and security decision.
-- **F-2 (backend, minor):** signing in to an unverified account returns `code: "email_not_verified"` with the message "Please verify your mobile number…". The code and the message disagree.
+- **F-1 (security): FIXED.** Sign-up used to finish with the SMS code, so the email address was never proven. Sign-up now always finishes with the code sent to the email address, so an account cannot be made with someone else's email. Backend test: `test_someone_elses_email_cannot_be_taken_with_your_own_mobile`.
+- **F-2 (minor): FIXED.** Signing in to an unverified account now returns `email_not_verified` with an email message. Backend test: `test_sign_in_is_refused_until_the_email_code_is_entered`.
+- **Mobile before bidding:** when `MOBILE_OTP_REQUIRED=true`, the auction page shows "Verify your mobile number to bid" instead of the bid form until the mobile is confirmed in the dashboard. Mocked regression tests in `tests/e2e/email-first-signup.spec.js`. The real-backend check of this path is **NOT TESTED**: it needs SMS switched on, and there is no SMS provider.
 
 ## Test data left in the local development database
 

@@ -34,7 +34,6 @@ PUBLIC_ROLES = ("bidder", "seller")  # roles that may be chosen at registration 
 ERR_INVALID_CREDENTIALS = "Invalid email or password. Please check your credentials."
 ERR_SUSPENDED = "This account is suspended. Please contact Salvex support."
 ERR_UNVERIFIED = "Please verify your email address before logging in."
-ERR_UNVERIFIED_MOBILE = "Please verify your mobile number to finish creating your account."
 GENERIC_RESEND_MESSAGE = "If this email is registered, a new code has been sent."
 MSG_VERIFY_FAILED = "Invalid or expired verification code. {n} attempt(s) remaining."
 MSG_RESET_FAILED = "Invalid or expired reset code. {n} attempt(s) remaining."
@@ -60,10 +59,11 @@ class CodeCheck:
 
 def finished_sign_up(user: User) -> bool:
     """
-    The account can sign in once its sign-up code was entered: the SMS code when mobile verification is
-    on (the email is confirmed later from the dashboard), otherwise the email code.
+    Sign-up is always finished with the code sent to the EMAIL address, so every account has a proven
+    email. The mobile number is confirmed later, from the dashboard, when MOBILE_OTP_REQUIRED says that
+    bidding needs it.
     """
-    return user.is_email_verified or (settings.MOBILE_OTP_REQUIRED and user.is_mobile_verified)
+    return user.is_email_verified
 
 
 def _normalize_email(email: str) -> str:
@@ -201,39 +201,12 @@ class AuthService:
 
     # ------------------------------------------------------------------ mobile (SMS) codes
     async def _send_mobile_code(self, user: User) -> None:
-        """Issue a fresh SMS code for the user's current mobile number (when SMS codes are switched on)."""
+        """Issue a fresh SMS code for a signed-in user's current mobile number (when SMS codes are switched on)."""
         if not settings.MOBILE_OTP_REQUIRED or user.is_mobile_verified or not user.mobile:
             return
         otp = await self._issue_code(user, PURPOSE_MOBILE)
         mobile = user.mobile
         await self._emit(lambda: self.sms_service.send_verification_otp(mobile, otp))
-
-    async def verify_signup_mobile_public(self, email: str, mobile_otp: str) -> Tuple[bool, str]:
-        """
-        Sign-up with mobile verification on: the SMS code finishes creating the account. Every failure
-        has the same shape for registered and unregistered emails.
-        """
-        clean_email = _normalize_email(email)
-        user = await self._get_user_by_email(clean_email)
-        if settings.MOBILE_OTP_REQUIRED and user is not None and user.is_active and not self._signed_up(user):
-            check = await self._check_code(user, PURPOSE_MOBILE, mobile_otp)
-            if check.result == CodeResult.OK:
-                user.is_mobile_verified = True
-                await self.db.flush()
-                fake_attempts.clear(_fake_key(PURPOSE_MOBILE, clean_email))
-                return True, "Mobile number verified."
-            if check.result == CodeResult.WRONG:
-                return False, MSG_MOBILE_FAILED.format(n=check.remaining)
-            if check.result == CodeResult.LOCKED:
-                fake_attempts.exhaust(_fake_key(PURPOSE_MOBILE, clean_email), settings.OTP_MAX_ATTEMPTS)
-                return False, MSG_MOBILE_LOCKED
-            # NO_CODE / EXPIRED fall through and look like any other failed attempt
-        remaining = fake_attempts.attempt(
-            _fake_key(PURPOSE_MOBILE, clean_email), settings.OTP_MAX_ATTEMPTS, FAKE_ATTEMPT_TTL_SECONDS
-        )
-        if remaining < 0:
-            return False, MSG_MOBILE_LOCKED
-        return False, MSG_MOBILE_FAILED.format(n=remaining)
 
     async def send_mobile_code_signed_in(self, user: User, new_mobile: Optional[str] = None) -> None:
         """
@@ -330,10 +303,7 @@ class AuthService:
         return user, None
 
     async def _send_signup_code(self, user: User) -> None:
-        """One code finishes sign-up: by SMS when mobile verification is on, otherwise by email."""
-        if settings.MOBILE_OTP_REQUIRED and user.mobile:
-            await self._send_mobile_code(user)
-            return
+        """The code that finishes sign-up always goes to the email address."""
         otp = await self._issue_code(user, PURPOSE_VERIFY)
         await self._emit(lambda: self.email_service.send_verification_otp(user.email, otp, user.name))
 
@@ -452,13 +422,9 @@ class AuthService:
             return True, GENERIC_RESEND_MESSAGE
         if purpose == PURPOSE_VERIFY and user.is_email_verified:
             return True, GENERIC_RESEND_MESSAGE
-        if purpose == PURPOSE_MOBILE and (not settings.MOBILE_OTP_REQUIRED or self._signed_up(user)):
-            return True, GENERIC_RESEND_MESSAGE  # after sign-up, codes are asked for while signed in
-        if await self._cooldown_active(user, purpose):
-            return True, GENERIC_RESEND_MESSAGE
-
         if purpose == PURPOSE_MOBILE:
-            await self._send_mobile_code(user)
+            return True, GENERIC_RESEND_MESSAGE  # SMS codes are only sent to signed-in users (dashboard)
+        if await self._cooldown_active(user, purpose):
             return True, GENERIC_RESEND_MESSAGE
 
         otp = await self._issue_code(user, purpose)
@@ -557,7 +523,7 @@ class AuthService:
         if not user.is_active:
             return None, None, None, ERR_SUSPENDED
         if not self._signed_up(user):
-            return None, None, None, ERR_UNVERIFIED_MOBILE if settings.MOBILE_OTP_REQUIRED and user.mobile else ERR_UNVERIFIED
+            return None, None, None, ERR_UNVERIFIED
 
         session = await self._create_session(user, user_agent)
         token = create_access_token(
@@ -581,10 +547,6 @@ class AuthService:
 
     async def _apply_new_password(self, user: User, new_password: str) -> None:
         user.password_hash = await asyncio.to_thread(hash_password, new_password)
-        if settings.MOBILE_OTP_REQUIRED and finished_sign_up(user):
-            # SMS sign-up: the account exists but the email may not be confirmed yet. The reset code came
-            # by email, so the address is confirmed (this is also how a real owner takes an address back).
-            user.is_email_verified = True
         await self._invalidate_unused_codes(user.id, PURPOSE_RESET)
         await self.revoke_all_sessions(user.id, reason="password_reset")  # every device is signed out
         await self.db.flush()

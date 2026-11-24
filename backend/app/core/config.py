@@ -110,9 +110,10 @@ class Settings(BaseSettings):
 
     # ---------------- Mobile number verification (SMS OTP) ----------------
     MOBILE_OTP_REQUIRED: bool = Field(
-        default=True,
-        description="Registration needs the SMS code as well as the email code, and bidding needs a verified "
-                    "mobile. Set false to run without SMS (for example until the SMS provider and DLT are ready)."
+        default=False,
+        description="Bidding needs a mobile number confirmed with an SMS code (asked for in the dashboard). "
+                    "Sign-up itself is always finished with the emailed code. Switch on only when a real "
+                    "SMS_PROVIDER is set up (production refuses the developer outbox)."
     )
     SMS_PROVIDER: str = Field(
         default="console",

@@ -1,24 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { KeyRound, Mail, ArrowRight, Smartphone } from 'lucide-react';
+import { KeyRound, Mail, ArrowRight } from 'lucide-react';
 import AuthShell, { Alert, Field } from './AuthShell';
-import { resendCode, verifyEmail, verifySignupMobile } from '../api/auth';
-import { useSiteConfig } from '../api/site';
+import { resendCode, verifyEmail } from '../api/auth';
 import { homeForRole } from '../auth/roles';
 import { useAuth } from '../auth/useAuth';
 
 const RESEND_WAIT_SECONDS = 60;
 
 /**
- * The one code that finishes sign-up. With mobile verification on it is the SMS code (the email is
- * confirmed later from the dashboard); otherwise it is the email code.
+ * The code that finishes sign-up: always the one sent to the email address. (When bidding needs a
+ * verified mobile, the buyer confirms it later from the dashboard.)
  */
 export default function VerifyEmailPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const { adoptSession } = useAuth();
-  const site = useSiteConfig();
-  const bySms = Boolean(site?.mobile_otp);
   const [email, setEmail] = useState(location.state?.email || '');
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
@@ -43,13 +40,13 @@ export default function VerifyEmailPage() {
       return;
     }
     if (!/^\d{6}$/.test(code)) {
-      setError({ message: bySms ? 'Enter the 6-digit code we sent by SMS.' : 'Enter the 6-digit code from the email.' });
+      setError({ message: 'Enter the 6-digit code from the email.' });
       return;
     }
     setBusy(true);
     try {
       // A correct code signs the user in, so go straight to their dashboard (no second sign-in).
-      const signedInUser = bySms ? await verifySignupMobile(email.trim(), code) : await verifyEmail(email.trim(), code);
+      const signedInUser = await verifyEmail(email.trim(), code);
       adoptSession(signedInUser);
       navigate(homeForRole(signedInUser.role), { replace: true });
     } catch (err) {
@@ -67,8 +64,8 @@ export default function VerifyEmailPage() {
     }
     setError(null);
     try {
-      const response = await resendCode(email.trim(), bySms ? 'mobile_verification' : 'email_verification');
-      setInfo(bySms ? 'If this account is waiting for its SMS code, a new one has been sent.' : response.message);
+      const response = await resendCode(email.trim(), 'email_verification');
+      setInfo(response.message);
       setWait(RESEND_WAIT_SECONDS);
     } catch (err) {
       setError({ message: err.message, code: err.code });
@@ -76,18 +73,12 @@ export default function VerifyEmailPage() {
     }
   };
 
-  const locked = error?.code === 'code_locked' || error?.code === 'mobile_code_locked';
-
-  if (site === null) {
-    return <div className="auth-loading" role="status" aria-live="polite">Loading…</div>;
-  }
+  const locked = error?.code === 'code_locked';
 
   return (
     <AuthShell
-      title={bySms ? 'Verify your mobile number' : 'Verify your email'}
-      subtitle={bySms
-        ? 'Enter the 6-digit code we sent by SMS to your mobile. It expires in 10 minutes and works once.'
-        : 'Enter the 6-digit code we emailed you. It expires in 10 minutes and works once.'}
+      title="Verify your email"
+      subtitle="Enter the 6-digit code we emailed you. It expires in 10 minutes and works once."
       footer={<p><Link to="/login" className="link-register">Back to sign in</Link></p>}
     >
       {info && <Alert kind="success">{info}</Alert>}
@@ -107,9 +98,9 @@ export default function VerifyEmailPage() {
           </div>
         </Field>
 
-        <Field id="verify-code" label={bySms ? 'SMS code' : 'Verification code'}>
+        <Field id="verify-code" label="Verification code">
           <div className="input-with-icon">
-            {bySms ? <Smartphone size={16} /> : <KeyRound size={16} />}
+            <KeyRound size={16} />
             <input id="verify-code" name="code" type="text" className="code-input" inputMode="numeric"
               autoComplete="one-time-code" pattern="[0-9]{6}" required placeholder="000000"
               value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))} />
@@ -117,12 +108,12 @@ export default function VerifyEmailPage() {
         </Field>
 
         <button type="submit" disabled={busy || code.length !== 6} className="salvex-btn salvex-btn-primary btn-login-submit">
-          {busy ? <span>Verifying…</span> : (<><span>{bySms ? 'Verify mobile' : 'Verify email'}</span><ArrowRight size={15} /></>)}
+          {busy ? <span>Verifying…</span> : (<><span>Verify email</span><ArrowRight size={15} /></>)}
         </button>
       </form>
 
       <div className="auth-actions-row">
-        <span className="auth-hint">{bySms ? 'Did not get the SMS? Check the number, or ask for a new code.' : 'Did not get the email? Check your spam folder.'}</span>
+        <span className="auth-hint">Did not get the email? Check your spam folder.</span>
         <button type="button" className="auth-secondary-btn" onClick={handleResend} disabled={wait > 0}>
           {wait > 0 ? `Send a new code in ${wait}s` : 'Send a new code'}
         </button>

@@ -39,7 +39,7 @@ Do not start the release until every box is ticked.
 - [ ] `FRONTEND_ORIGINS` and `PUBLIC_SITE_URL` use the live `https://` domain.
 - [ ] `TRUSTED_PROXY_COUNT=2` (Coolify's proxy plus the website's nginx).
 - [ ] `EMAIL_PROVIDER=smtp` with all `SMTP_*` values.
-- [ ] `MOBILE_OTP_REQUIRED=false` until a real SMS provider exists.
+- [ ] `MOBILE_OTP_REQUIRED=false` until a real SMS provider exists. Sign-up always uses the email code; `true` only makes bidding need a mobile number confirmed by SMS (from the dashboard).
 - [ ] `ONLINE_PAYMENT_FLOW`: `false` for this client. If `true`, all four `COMPANY_BANK_*` values are required.
 - [ ] Persistent volume mounted at `/data/private` (`KYC_STORAGE_DIR`).
 

@@ -74,11 +74,6 @@ class VerifyEmailRequest(StrictRequest):
     otp: str = Field(..., pattern=r"^[0-9]{6}$", description="6-digit verification code")
 
 
-class VerifySignupMobileRequest(StrictRequest):
-    email: EmailStr = Field(..., description="The email address used to register")
-    otp: str = Field(..., pattern=r"^[0-9]{6}$", description="6-digit code sent by SMS")
-
-
 class MobileCodeRequest(StrictRequest):
     mobile: Optional[str] = Field(default=None, max_length=50,
                                   description="A new number to use instead of the current one (optional)")

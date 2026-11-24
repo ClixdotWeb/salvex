@@ -74,7 +74,7 @@ export const BUYER_PASSWORD = 'Maple-Tree-Walks-12';
 export const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
 export const PDF = Buffer.from('%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Kids[]/Count 0>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF\n');
 
-/** Registers a buyer through the real sign-up pages (SMS code, then the email code on the dashboard). */
+/** Registers a buyer through the real sign-up pages: the emailed code finishes sign-up and signs in. */
 export async function registerBuyer(page, tag) {
   const email = `real.${tag}.${stamp()}@example.com`.toLowerCase();   // the backend stores emails in lower case
   const mobile = `+91 9${String(Date.now()).slice(-9)}`;
@@ -83,21 +83,17 @@ export async function registerBuyer(page, tag) {
   await page.fill('#reg-email', email);
   await page.fill('#reg-password', BUYER_PASSWORD);
   await page.fill('#reg-mobile', mobile);
+  const before = outboxSize();
   expect((await clickFor(page, page.locator('form button[type="submit"]').first(), 'POST', '/api/auth/register')).status).toBe(201);
   await expect(page).toHaveURL(/\/verify-email/);
   await page.fill('#verify-email', email);
-  await page.fill('#verify-code', lastCode(mobile));
-  expect((await clickFor(page, page.locator('form button[type="submit"]').first(), 'POST', '/api/auth/verify-mobile')).status).toBe(200);
+  await page.fill('#verify-code', lastCodeSoon(email, before));
+  expect((await clickFor(page, page.locator('form button[type="submit"]').first(), 'POST', '/api/auth/verify-email')).status).toBe(200);
   await expect(page).toHaveURL(/\/dashboard/);
-  const card = page.locator('section', { has: page.locator('#ev-title') });
-  const before = outboxSize();
-  await card.getByRole('button', { name: /Email me a code/ }).click();
-  await card.locator('input[autocomplete="one-time-code"]').fill(lastCodeSoon(email, before));
-  expect((await clickFor(page, card.getByRole('button', { name: /^Verify/ }), 'POST', '/api/auth/email/verify')).status).toBe(200);
   return { email, mobile, password: BUYER_PASSWORD };
 }
 
-function lastCodeSoon(to, after) {
+export function lastCodeSoon(to, after) {
   const end = Date.now() + 10000;
   for (;;) {
     try { return lastCode(to, after); } catch (e) { if (Date.now() > end) throw e; }

@@ -93,9 +93,7 @@ export default function RegisterPage() {
     <AuthShell
       className="auth-register"
       title="Create your Salvex account"
-      subtitle={site?.mobile_otp
-        ? `Register to ${sellers ? 'bid or sell' : 'bid on vehicles'}. We will send a 6-digit code by SMS to confirm your mobile number.`
-        : sellers
+      subtitle={sellers
           ? 'Register as a bidder or a seller. We will email you a 6-digit code to confirm your email address.'
           : 'Register to bid on vehicles. We will email you a code to confirm your email.'}
       footer={<p>Already have an account? <Link to="/login" className="link-register">Sign in</Link></p>}

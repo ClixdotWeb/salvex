@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
-import { AlertTriangle, CheckCircle2, ChevronLeft, FileText, Gavel, Loader2, MapPin, ShieldCheck, Trophy } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, ChevronLeft, FileText, Gavel, Loader2, MapPin, ShieldCheck, Smartphone, Trophy } from 'lucide-react';
 import { getAuction, getBidHistory, newIdempotencyKey, placeBid } from '../api/auctions';
 import { getVehicleOptions } from '../api/vehicles';
 import { useAuth } from '../auth/useAuth';
+import { useSiteConfig } from '../api/site';
 import { Countdown, PhaseBadge, VehiclePhoto, clockOffset, dateTime, money } from './shared';
 import ModalLayer from './ModalLayer';
 import './public.css';
@@ -156,6 +157,7 @@ export default function AuctionPage() {
 }
 
 function BidArea({ auction, user, youLead, location, onBid }) {
+  const site = useSiteConfig();
   const minimum = useMemo(() => {
     if (auction.current_price) return Math.floor(Number(auction.current_price)) + 1;
     return Math.ceil(Number(auction.starting_price));
@@ -184,6 +186,16 @@ function BidArea({ auction, user, youLead, location, onBid }) {
         <ShieldCheck size={18} />
         <div><strong>Verify your identity to bid</strong><p>Complete KYC once; you can then bid on any auction.</p>
           <Link to="/dashboard" className="pub-link">Go to KYC →</Link></div>
+      </div>
+    );
+  }
+  // Bidding can also need a mobile number confirmed by SMS (switched on once an SMS provider is set up).
+  if (site?.mobile_otp && user.is_mobile_verified === false) {
+    return (
+      <div className="pub-state warning">
+        <Smartphone size={18} />
+        <div><strong>Verify your mobile number to bid</strong><p>We send a code by SMS; our team calls winners on this number.</p>
+          <Link to="/dashboard" className="pub-link">Verify mobile →</Link></div>
       </div>
     );
   }

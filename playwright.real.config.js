@@ -12,5 +12,10 @@ export default defineConfig({
   retries: 0,
   reporter: [['list'], ['json', { outputFile: 'test-results/real-results.json' }]],
   use: { baseURL: 'http://localhost:5173', viewport: { width: 1280, height: 900 }, trace: 'retain-on-failure' },
-  webServer: { command: 'npm run dev:all', url: 'http://localhost:5173', reuseExistingServer: true, timeout: 180000 },
+  // Always a fresh server started HERE with the developer outbox: never reuse one that may have real SMTP/SMS
+  // settings from backend/.env (that would email the @example.com test accounts for real).
+  webServer: {
+    command: 'npm run dev:all', url: 'http://localhost:5173', reuseExistingServer: false, timeout: 180000,
+    env: { EMAIL_PROVIDER: 'console', SMS_PROVIDER: 'console', MOBILE_OTP_REQUIRED: 'false' },
+  },
 });

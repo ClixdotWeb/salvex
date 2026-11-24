@@ -19,13 +19,6 @@ export async function verifyEmail(email, otp) {
   return data.user;
 }
 
-/** Sign-up with mobile verification on: the SMS code creates the account and signs the user in. */
-export async function verifySignupMobile(email, otp) {
-  const data = await apiRequest('/api/auth/verify-mobile', { method: 'POST', body: { email, otp }, ...PUBLIC });
-  setCsrfToken(data.csrf_token);
-  return data.user;
-}
-
 export function resendCode(email, purpose = 'email_verification') {
   return apiRequest('/api/auth/resend-otp', { method: 'POST', body: { email, purpose }, ...PUBLIC });
 }

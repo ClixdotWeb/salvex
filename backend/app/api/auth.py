@@ -24,12 +24,10 @@ from app.schemas.auth import (
     VerifyEmailRequest,
     VerifyCodeRequest,
     VerifyEmailResponse,
-    VerifySignupMobileRequest,
 )
 from app.services.auth_service import (
     ERR_SUSPENDED,
     ERR_UNVERIFIED,
-    ERR_UNVERIFIED_MOBILE,
     GENERIC_RESEND_MESSAGE,
     MSG_LOCKED,
     MSG_MOBILE_LOCKED,
@@ -43,14 +41,10 @@ REGISTER_MESSAGE = (
     "Thanks! If this email address can be registered, a 6-digit verification code has been sent to it. "
     "Enter the code to finish creating your account."
 )
-REGISTER_MESSAGE_WITH_SMS = (
-    "Thanks! If this email address can be registered, we have sent a 6-digit code by SMS to your mobile "
-    "number. Enter it to finish creating your account."
-)
 
 
 def _register_message() -> str:
-    return REGISTER_MESSAGE_WITH_SMS if settings.MOBILE_OTP_REQUIRED else REGISTER_MESSAGE
+    return REGISTER_MESSAGE      # sign-up is always finished with the emailed code
 
 
 def _failure_code(message: str) -> str:
@@ -185,37 +179,6 @@ async def resend_otp(
 
 
 @router.post(
-    "/verify-mobile",
-    response_model=VerifyEmailResponse,
-    summary="Finish sign-up with the 6-digit SMS code (mobile verification on); this also signs the user in",
-)
-async def verify_signup_mobile(
-    request: Request,
-    data: VerifySignupMobileRequest,
-    response: Response,
-    x_auth_mode: Optional[str] = Header(None, alias="X-Auth-Mode"),
-    db: AsyncSession = Depends(get_db),
-):
-    enforce_rate_limit("verify", request, data.email)
-    service = _service(db)
-    success, message = await service.verify_signup_mobile_public(data.email, data.otp)
-    if not success:
-        await db.commit()  # attempt counts are saved even when the code is wrong
-        raise ApiError(400, message, _failure_code(message))
-
-    user, token, session = await service.start_session_after_verification(data.email, request.headers.get("user-agent"))
-    await db.commit()
-    _set_auth_cookie(response, token)
-    wants_bearer = (x_auth_mode or "").lower() == "bearer"
-    return VerifyEmailResponse(
-        message="Mobile number verified. You are now signed in.",
-        user=UserResponse.model_validate(user),
-        csrf_token=csrf_token_for_session(str(session.id)),
-        access_token=token if wants_bearer else None,
-    )
-
-
-@router.post(
     "/email/send-code",
     response_model=GenericMessageResponse,
     summary="Signed in: email a 6-digit code to confirm your email address",
@@ -316,7 +279,7 @@ async def login(
         data.identifier, data.password, request.headers.get("user-agent")
     )
     if error:
-        if error in (ERR_UNVERIFIED, ERR_UNVERIFIED_MOBILE):
+        if error == ERR_UNVERIFIED:
             # same code for both: the website opens the verify page, which asks for the right code
             raise ApiError(403, error, "email_not_verified")
         if error == ERR_SUSPENDED:

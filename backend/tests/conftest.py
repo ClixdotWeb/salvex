@@ -30,12 +30,15 @@ def pytest_configure(config):
     # The older KYC tests upload one generic document; tests of the client's document rules set these back.
     os.environ["KYC_REQUIRED_DOCUMENTS"] = ""
     os.environ["KYC_REQUIRE_AADHAAR_NUMBER"] = "false"
-    # The older tests register with the email code only; test_mobile_otp.py switches SMS codes on.
+    # Bidding does not need a verified mobile by default; test_mobile_otp.py switches that on.
     os.environ["MOBILE_OTP_REQUIRED"] = "false"
     # Anything written by the developer email outbox during tests goes to a temp folder, never the repo
     os.environ["DEV_OUTBOX_PATH"] = str(Path(tempfile.gettempdir()) / "salvex-test-outbox" / "outbox.jsonl")
     for name in ("COOKIE_SECURE", "COOKIE_SAMESITE", "COOKIE_DOMAIN", "EMAIL_PROVIDER", "SMS_PROVIDER", "RATE_LIMIT_ENABLED", "TRUSTED_PROXY_COUNT", "TRUSTED_PROXY_NETWORKS"):
         os.environ.pop(name, None)  # tests start from the defaults, whatever the developer's shell has set
+    # ...and never from backend/.env: a developer's real SMTP or SMS settings must not send mail from tests.
+    os.environ["EMAIL_PROVIDER"] = "console"
+    os.environ["SMS_PROVIDER"] = "console"
 
 
 @pytest.fixture(scope="session", autouse=True)
