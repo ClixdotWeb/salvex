@@ -151,13 +151,8 @@ function useHowItWorksMotion(rootRef) {
     const mm = gsap.matchMedia(root);
 
     mm.add(
-      {
-        desktop: '(min-width: 901px) and (prefers-reduced-motion: no-preference)',
-        mobile: '(max-width: 900px) and (prefers-reduced-motion: no-preference)'
-      },
-      (ctx) => {
-        const { desktop } = ctx.conditions;
-
+      '(prefers-reduced-motion: no-preference)',
+      () => {
         gsap.from('.hiw-banner-copy > *', {
           opacity: 0, y: 24, duration: 0.7, stagger: 0.08, ease: 'power3.out'
         });
@@ -177,12 +172,10 @@ function useHowItWorksMotion(rootRef) {
             onLeaveBack: () => step.classList.remove('is-active')
           });
           const card = step.querySelector('.hiw-zz-card');
-          const fromLeft = step.classList.contains('is-left');
           gsap.from(card, {
             opacity: 0,
-            x: desktop && !step.classList.contains('is-wide') ? (fromLeft ? -40 : 40) : 0,
-            y: desktop ? 0 : 24,
-            duration: 0.7,
+            y: 24,
+            duration: 0.6,
             ease: 'power3.out',
             scrollTrigger: { trigger: step, start: 'top 85%', once: true }
           });
@@ -246,7 +239,7 @@ export default function HowItWorksPage({ onRegisterClick, onExploreClick }) {
         </div>
       </section>
 
-      {/* Zig-zag steps */}
+      {/* Steps */}
       <section className="hiw-steps">
         <div className="hiw-container">
           <div className="hiw-zz">
@@ -254,11 +247,9 @@ export default function HowItWorksPage({ onRegisterClick, onExploreClick }) {
           <ol className="hiw-zz-list">
             {STEPS.map((step, i) => {
               const Icon = step.icon;
-              const side = i % 2 === 0 ? 'is-left' : 'is-right';
               return (
-                <li key={step.title} id={stepId(i)} className={`hiw-zz-step ${step.categories ? 'is-wide' : side}`}>
+                <li key={step.title} id={stepId(i)} className="hiw-zz-step">
                   <span className="hiw-marker" aria-hidden="true">{pad(i + 1)}</span>
-                  <span className="hiw-ghost" aria-hidden="true">{pad(i + 1)}</span>
                   <div className="hiw-zz-card">
                     <div className="hiw-zz-head">
                       <span className="hiw-icon"><Icon size={22} aria-hidden="true" /></span>

@@ -262,11 +262,10 @@
 /* the centre line + its scroll fill */
 .hiw-line {
   position: absolute;
-  left: 50%;
+  left: 27px;
   top: 28px;
   bottom: 28px;
   width: 2px;
-  transform: translateX(-50%);
   background: var(--hiw-line);
   border-radius: 2px;
   overflow: hidden;
@@ -283,13 +282,14 @@
 .hiw-zz-step {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 96px minmax(0, 1fr);
+  grid-template-columns: 56px minmax(0, 1fr);
+  gap: 0 20px;
   align-items: start;
 }
 
 /* the number on the line */
 .hiw-marker {
-  grid-column: 2;
+  grid-column: 1;
   grid-row: 1;
   justify-self: center;
   position: relative;
@@ -315,25 +315,8 @@
   box-shadow: 0 0 0 6px rgba(21, 42, 85, 0.1), 0 12px 26px -10px rgba(21, 42, 85, 0.6);
 }
 
-/* big outlined number on the empty side */
-.hiw-ghost {
-  grid-row: 1;
-  align-self: center;
-  font-size: clamp(80px, 9vw, 132px);
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.06em;
-  color: transparent;
-  -webkit-text-stroke: 1.5px #D5DEEB;
-  user-select: none;
-  transition: -webkit-text-stroke-color 0.3s ease;
-}
-
-.hiw-zz-step.is-active .hiw-ghost {
-  -webkit-text-stroke-color: #9FB0CF;
-}
-
 .hiw-zz-card {
+  grid-column: 2;
   grid-row: 1;
   position: relative;
   padding: 28px 30px;
@@ -348,45 +331,6 @@
   border-color: #C7D2E5;
   box-shadow: 0 28px 54px -30px rgba(21, 42, 85, 0.4);
   transform: translateY(-3px);
-}
-
-/* left / right placement */
-.hiw-zz-step.is-left .hiw-zz-card { grid-column: 1; }
-.hiw-zz-step.is-left .hiw-ghost { grid-column: 3; justify-self: start; padding-left: 12px; }
-.hiw-zz-step.is-right .hiw-zz-card { grid-column: 3; }
-.hiw-zz-step.is-right .hiw-ghost { grid-column: 1; justify-self: end; padding-right: 12px; }
-
-/* little connector from the card to the line */
-.hiw-zz-step.is-left .hiw-zz-card::after,
-.hiw-zz-step.is-right .hiw-zz-card::after {
-  content: '';
-  position: absolute;
-  top: 27px;
-  width: 22px;
-  height: 2px;
-  background: var(--hiw-line);
-}
-
-.hiw-zz-step.is-left .hiw-zz-card::after { right: -23px; }
-.hiw-zz-step.is-right .hiw-zz-card::after { left: -23px; }
-
-/* the categories step spans the whole width, under its marker */
-.hiw-zz-step.is-wide {
-  grid-template-columns: minmax(0, 1fr);
-  gap: 20px;
-}
-
-.hiw-zz-step.is-wide .hiw-marker {
-  grid-column: 1;
-}
-
-.hiw-zz-step.is-wide .hiw-ghost {
-  display: none;
-}
-
-.hiw-zz-step.is-wide .hiw-zz-card {
-  grid-column: 1;
-  grid-row: 2;
 }
 
 .hiw-zz-head {
@@ -745,38 +689,8 @@
     gap: 32px;
   }
 
-  /* timeline on the left, every card full width */
-  .hiw-line {
-    left: 27px;
-    transform: none;
-  }
-
-  .hiw-zz-step,
-  .hiw-zz-step.is-wide {
-    grid-template-columns: 56px minmax(0, 1fr);
+  .hiw-zz-step {
     gap: 0 16px;
-  }
-
-  .hiw-zz-step .hiw-marker,
-  .hiw-zz-step.is-wide .hiw-marker {
-    grid-column: 1;
-    grid-row: 1;
-  }
-
-  .hiw-zz-step.is-left .hiw-zz-card,
-  .hiw-zz-step.is-right .hiw-zz-card,
-  .hiw-zz-step.is-wide .hiw-zz-card {
-    grid-column: 2;
-    grid-row: 1;
-  }
-
-  .hiw-ghost {
-    display: none;
-  }
-
-  .hiw-zz-step.is-left .hiw-zz-card::after,
-  .hiw-zz-step.is-right .hiw-zz-card::after {
-    display: none;
   }
 
   .hiw-cats {
@@ -809,8 +723,7 @@
     left: 21px;
   }
 
-  .hiw-zz-step,
-  .hiw-zz-step.is-wide {
+  .hiw-zz-step {
     grid-template-columns: 44px minmax(0, 1fr);
     gap: 0 12px;
   }
@@ -863,7 +776,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .hiw-marker,
-  .hiw-ghost,
   .hiw-zz-card,
   .hiw-rule,
   .hiw-btn,
