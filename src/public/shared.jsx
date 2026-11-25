@@ -80,7 +80,7 @@ export function AuctionCard({ auction, offset }) {
       </div>
       <div className="pub-card-body">
         <h3>{v.manufacturing_year} {v.make} {v.model}</h3>
-        <p className="pub-card-sub">{v.variant} · {v.registration_masked}{categoryLabel(v.category) ? ` · ${categoryLabel(v.category)}` : ''}</p>
+        <p className="pub-card-sub">{v.variant} · {v.registration_number}{categoryLabel(v.category) ? ` · ${categoryLabel(v.category)}` : ''}</p>
         <p className="pub-card-meta"><MapPin size={13} /> {v.location}</p>
         <div className="pub-card-price">
           <div>

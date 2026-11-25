@@ -39,7 +39,7 @@ async def test_public_list_has_no_price_and_hides_sold_vehicles(api, storage):
     listed = (await api.client.get("/api/ready-to-lift?page_size=100")).json()["items"]
     card = next(v for v in listed if v["id"] == vid)
     assert card["km_driven"] == 48210 and card["superdari"] is False and card["listing_type"] == "ready_to_lift"
-    assert card["auction"] is None and "claim_number" not in card and "*" in card["registration_masked"]
+    assert card["auction"] is None and "claim_number" not in card and "*" not in card["registration_number"]
     assert any(v["id"] == vid for v in (await api.client.get("/api/ready-to-lift?q=innova")).json()["items"])
     assert any(v["id"] == vid for v in (await api.client.get(
         "/api/catalogue/vehicles?listing_type=ready_to_lift&page_size=100")).json()["items"])

@@ -296,6 +296,7 @@ async def login(
     return AuthTokenResponse(
         message="Login successful",
         access_token=token if wants_bearer else None,
+        is_first_login=getattr(user, "is_first_login", False),
         user=UserResponse.model_validate(user),
         csrf_token=csrf_token_for_session(str(session.id)),
     )

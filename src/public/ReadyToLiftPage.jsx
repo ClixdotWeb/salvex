@@ -19,7 +19,7 @@ export function ReadyToLiftCard({ vehicle: v }) {
       </Link>
       <div className="pub-card-body">
         <Link to={`/vehicles/${v.id}`} className="pub-card-title-link"><h3>{v.manufacturing_year} {v.make} {v.model}</h3></Link>
-        <p className="pub-card-sub">{v.variant} · {v.registration_masked}</p>
+        <p className="pub-card-sub">{v.variant} · {v.registration_number}</p>
         <p className="pub-card-meta"><MapPin size={13} /> {v.location}</p>
         <div className="pub-rtl-facts">
           <span><Gauge size={13} /> {km(v.km_driven)}</span>

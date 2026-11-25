@@ -108,6 +108,11 @@ class User(Base):
     payment_defaults: Mapped[int] = mapped_column(default=0, server_default="0", insert_default=0, nullable=False)
     bidding_blocked_until: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
+    # NULL until the very first successful sign-in. The login endpoint reads it before
+    # overwriting it, which is how the website knows to greet a new user with "Welcome"
+    # instead of "Welcome back".
+    last_login_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),

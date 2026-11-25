@@ -26,7 +26,9 @@ export function resendCode(email, purpose = 'email_verification') {
 export async function login(identifier, password) {
   const data = await apiRequest('/api/auth/login', { method: 'POST', body: { identifier, password }, ...PUBLIC });
   setCsrfToken(data.csrf_token); // memory only; the session itself lives in an HttpOnly cookie
-  return data.user;
+  // is_first_login is true only on the very first sign-in for this account; it is not part of
+  // the user record, so it is attached here for the greeting and never stored.
+  return { ...data.user, is_first_login: Boolean(data.is_first_login) };
 }
 
 /** Restores a session after a page load. Resolves with the user, or rejects with a 401 ApiError. */

@@ -23,7 +23,6 @@ from app.models.vehicle import Vehicle
 from app.schemas.auctions import AuctionPublic
 from app.schemas.bids import BidRequest, BidResult, MyBidRow, PublicBid
 from app.schemas.common import Page
-from app.schemas.vehicles import mask_registration
 from app.services import bidding
 from app.services.auctions import load_auction, now_utc
 
@@ -140,7 +139,7 @@ async def my_bids(
         items.append(MyBidRow(
             auction_id=auction.id, vehicle_id=vehicle.id,
             title=f"{vehicle.manufacturing_year} {vehicle.make} {vehicle.model} {vehicle.variant}",
-            registration_masked=mask_registration(vehicle.registration_number), my_highest_bid=my_max,
+            registration_number=vehicle.registration_number, my_highest_bid=my_max,
             current_price=auction.current_price, phase=auction.phase(now), result=auction.result,
             ends_at=auction.ends_at, you_are_highest=auction.current_winner_id == ctx.user.id,
             you_won=auction.result == "sold" and auction.current_winner_id == ctx.user.id, server_time=now,

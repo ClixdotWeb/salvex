@@ -64,7 +64,8 @@ export default function LoginPage({ onShowToast }) {
     setBusy(true);
     try {
       const signedIn = await login(email.trim(), password);
-      if (onShowToast) onShowToast(`Welcome back, ${signedIn.name}!`);
+      // First ever sign-in gets "Welcome"; a returning user gets "Welcome back".
+      if (onShowToast) onShowToast(`${signedIn.is_first_login ? 'Welcome' : 'Welcome back'}, ${signedIn.name}!`);
     } catch (err) {
       setError(describeLoginError(err));
       setPassword('');

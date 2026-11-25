@@ -271,8 +271,8 @@ async def test_review_flow_and_public_catalogue(api, storage):
     public = await api.client.get(f"/api/catalogue/vehicles/{vid}")                         # no sign-in
     assert public.status_code == 200
     card = public.json()
-    assert card["registration_masked"] == "KL07**2468"
-    assert not {"registration_number", "claim_number", "owner_id", "review_reason", "status"} & set(card)
+    assert card["registration_number"] and "*" not in card["registration_number"]   # shown in full since 2026-11-25
+    assert not {"claim_number", "owner_id", "review_reason", "status"} & set(card)
     assert len(card["photo_ids"]) == 2
     photo = await api.client.get(f"/api/catalogue/vehicles/{vid}/photos/{card['photo_ids'][0]}")
     assert photo.status_code == 200 and photo.headers["content-type"] == "image/jpeg" and "public" in photo.headers["cache-control"]

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
-import { AlertTriangle, CheckCircle2, ChevronLeft, FileText, Gavel, Loader2, MapPin, ShieldCheck, Smartphone, Trophy } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, ChevronLeft, ChevronRight, FileText, Gavel, Loader2, MapPin, ShieldCheck, Smartphone, Trophy } from 'lucide-react';
 import { getAuction, getBidHistory, newIdempotencyKey, placeBid } from '../api/auctions';
 import { getVehicleOptions } from '../api/vehicles';
 import { useAuth } from '../auth/useAuth';
@@ -19,7 +19,7 @@ const AUCTION_TERMS = [
 
 const SPEC_FIELDS = [
   ['category', 'Category'], ['make', 'Make'], ['model', 'Model'], ['variant', 'Variant'], ['manufacturing_year', 'Manufacturing year'],
-  ['registration_year', 'Registration year'], ['registration_masked', 'Registration number'], ['fuel_type', 'Fuel'],
+  ['registration_year', 'Registration year'], ['registration_number', 'Registration number'], ['fuel_type', 'Fuel'],
   ['transmission', 'Transmission'], ['number_of_owners', 'Owners'], ['km_driven', 'KM driven'], ['damage_type', 'Damage'],
   ['rc_status', 'RC status'], ['registration_type', 'Registration type'], ['hypothecation_status', 'Hypothecation'],
   ['location', 'Location'],
@@ -84,6 +84,21 @@ export default function AuctionPage() {
               <div className="pub-gallery-main">
                 <VehiclePhoto vehicle={v} index={photo} />
                 <PhaseBadge phase={phase} />
+                {v.photo_ids.length > 1 && (
+                  <>
+                    <button type="button" className="pub-gallery-nav pub-gallery-prev"
+                      onClick={() => setPhoto((i) => (i - 1 + v.photo_ids.length) % v.photo_ids.length)}
+                      aria-label="Previous photo">
+                      <ChevronLeft size={20} />
+                    </button>
+                    <button type="button" className="pub-gallery-nav pub-gallery-next"
+                      onClick={() => setPhoto((i) => (i + 1) % v.photo_ids.length)}
+                      aria-label="Next photo">
+                      <ChevronRight size={20} />
+                    </button>
+                    <span className="pub-gallery-count" aria-hidden="true">{photo + 1} / {v.photo_ids.length}</span>
+                  </>
+                )}
               </div>
               {v.photo_ids.length > 1 && (
                 <div className="pub-thumbs">
@@ -117,7 +132,7 @@ export default function AuctionPage() {
           <aside className="pub-auction-side">
             <div className="pub-bidbox">
               <h1>{v.manufacturing_year} {v.make} {v.model} <span>{v.variant}</span></h1>
-              <p className="pub-card-meta"><MapPin size={14} /> {v.location} · {v.registration_masked}</p>
+              <p className="pub-card-meta"><MapPin size={14} /> {v.location} · {v.registration_number}</p>
 
               <div className="pub-bid-figures">
                 <div><span>{auction.current_price ? 'Current bid' : 'Starting price'}</span>

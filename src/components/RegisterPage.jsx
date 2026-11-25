@@ -6,6 +6,7 @@ import { useAuth } from '../auth/useAuth';
 import { homeForRole } from '../auth/roles';
 import { useSiteConfig } from '../api/site';
 import { register } from '../api/auth';
+import PasswordStrengthMeter from './PasswordStrengthMeter';
 
 // These rules mirror the backend (backend/app/schemas/auth.py and core/password_policy.py).
 // The backend is the real gatekeeper; the checks here just save a round trip and give instant feedback.
@@ -150,6 +151,7 @@ export default function RegisterPage() {
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
+            <PasswordStrengthMeter password={form.password} email={form.email} id="reg-password-strength" />
           </Field>
 
           <Field id="reg-mobile" label="Mobile number" error={errors.mobile}>

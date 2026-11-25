@@ -227,7 +227,7 @@ async def test_my_bids_shows_status_and_wins(api, storage):
     await bid(api, bob, aid, "65000")
     row = (await api.client.get("/api/bids/mine", headers=alice)).json()["items"][0]
     assert row["auction_id"] == aid and row["my_highest_bid"] == "60000.00" and row["current_price"] == "65000.00"
-    assert row["you_are_highest"] is False and row["you_won"] is False and "*" in row["registration_masked"]
+    assert row["you_are_highest"] is False and row["you_won"] is False and "*" not in row["registration_number"]
 
     await action(api, admin, aid, "close", reason="Ended")
     won = (await api.client.get("/api/bids/mine", headers=bob)).json()["items"][0]

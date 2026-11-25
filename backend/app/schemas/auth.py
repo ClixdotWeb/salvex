@@ -142,6 +142,9 @@ class MeResponse(UserResponse):
 
 class AuthTokenResponse(BaseModel):
     message: str
+    # True only on the very first successful sign-in for this account, so the website can say
+    # "Welcome" instead of "Welcome back". Not on MeResponse: that is re-read on every page load.
+    is_first_login: bool = False
     # Only returned to non-browser clients that ask for it with the header "X-Auth-Mode: bearer".
     # Browsers receive the token only in an HttpOnly cookie that scripts cannot read.
     access_token: Optional[str] = None

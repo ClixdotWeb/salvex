@@ -50,7 +50,7 @@ class MyBidRow(BaseModel):
     auction_id: uuid.UUID
     vehicle_id: uuid.UUID
     title: str
-    registration_masked: str
+    registration_number: str
     my_highest_bid: Decimal
     current_price: Decimal
     phase: str

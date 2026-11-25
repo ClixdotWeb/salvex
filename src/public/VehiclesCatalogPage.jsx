@@ -92,7 +92,7 @@ export default function VehiclesCatalogPage() {
               </div>
               <div className="pub-card-body">
                 <h3>{v.manufacturing_year} {v.make} {v.model}</h3>
-                <p className="pub-card-sub">{v.variant} · {v.registration_masked}</p>
+                <p className="pub-card-sub">{v.variant} · {v.registration_number}</p>
                 <p className="pub-card-meta"><MapPin size={13} /> {v.location}</p>
                 <div className="pub-card-price">
                   {v.listing_type === 'ready_to_lift' ? (
@@ -155,7 +155,7 @@ export function VehiclePage() {
           <aside className="pub-auction-side">
             <div className="pub-bidbox">
               <h1>{v.manufacturing_year} {v.make} {v.model} <span>{v.variant}</span></h1>
-              <p className="pub-card-meta"><MapPin size={14} /> {v.location} · {v.registration_masked}</p>
+              <p className="pub-card-meta"><MapPin size={14} /> {v.location} · {v.registration_number}</p>
               <dl className="pub-mini-specs">
                 {v.listing_type !== 'ready_to_lift' && <><dt>Category</dt><dd>{label('category')}</dd></>}
                 <dt>Fuel</dt><dd>{label('fuel_type')}</dd>

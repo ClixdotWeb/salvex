@@ -107,6 +107,55 @@
 .pub-thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 8px; }
 .pub-thumbs button { aspect-ratio: 4 / 3; padding: 0; border: 2px solid transparent; border-radius: var(--radius-sm); overflow: hidden; cursor: pointer; background: #E2E8F0; }
 .pub-thumbs button.active { border-color: var(--color-auction-red); }
+
+/* Photo gallery arrows (client request, 2026-11-25: the next-photo arrow was missing).
+   Only rendered when a vehicle has more than one photo. Sized to stay a comfortable tap
+   target on phones and kept above the phase badge, which sits at the top-left. */
+.pub-gallery-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(7, 11, 20, 0.55);
+  color: var(--color-white);
+  cursor: pointer;
+  z-index: 2;
+  transition: background-color 0.18s ease;
+}
+.pub-gallery-nav:hover { background: rgba(7, 11, 20, 0.78); }
+.pub-gallery-nav:focus-visible { outline: 2px solid var(--color-white); outline-offset: 2px; }
+.pub-gallery-prev { left: 10px; }
+.pub-gallery-next { right: 10px; }
+
+.pub-gallery-count {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 2;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(7, 11, 20, 0.55);
+  color: var(--color-white);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 480px) {
+  .pub-gallery-nav { width: 36px; height: 36px; }
+  .pub-gallery-prev { left: 6px; }
+  .pub-gallery-next { right: 6px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pub-gallery-nav { transition: none; }
+}
 .pub-specs, .pub-bidbox, .pub-history {
   background: var(--color-white); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 20px;
 }

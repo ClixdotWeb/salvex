@@ -27,11 +27,6 @@ def normalise_registration(value: str) -> str:
     return clean
 
 
-def mask_registration(value: str) -> str:
-    keep = 4 if len(value) >= 8 else 2
-    return value[:keep] + "*" * (len(value) - 2 * keep) + value[-keep:]
-
-
 def _text(value: str, label: str) -> str:
     clean = " ".join((value or "").split())
     if not clean:
@@ -252,8 +247,11 @@ class OpenAuctionSummary(BaseModel):
 
 
 class CatalogueVehicle(_VehicleCommon):
-    """Public view of an APPROVED vehicle. No claim number, owner or review notes; registration masked."""
-    registration_masked: str
+    """Public view of an APPROVED vehicle. No claim number, owner or review notes.
+
+    The registration number is shown in full: the client asked for it on 2026-11-25, replacing the
+    earlier partial mask (KL07AB1234 -> KL07**1234)."""
+    registration_number: str
     photo_ids: List[uuid.UUID]
     auction: Optional[OpenAuctionSummary] = None     # the vehicle's open auction, if any
     sold: bool = False                                # detail page only: sold in an auction / as Ready to Lift
@@ -266,7 +264,7 @@ class CatalogueVehicle(_VehicleCommon):
             summary = OpenAuctionSummary(id=auction.id, phase=auction.phase(now), starting_price=auction.starting_price,
                                          current_price=auction.current_price, bid_count=auction.bid_count,
                                          starts_at=auction.starts_at, ends_at=auction.ends_at)
-        return cls(**data, registration_masked=mask_registration(vehicle.registration_number),
+        return cls(**data, registration_number=vehicle.registration_number,
                    photo_ids=[p.id for p in vehicle.photos], auction=summary)
 
 

@@ -525,6 +525,11 @@ class AuthService:
         if not self._signed_up(user):
             return None, None, None, ERR_UNVERIFIED
 
+        # Read before writing: NULL means nobody has ever signed in to this account, which is
+        # what the website uses to show "Welcome" rather than "Welcome back".
+        user.is_first_login = user.last_login_at is None
+        user.last_login_at = datetime.now(timezone.utc)
+
         session = await self._create_session(user, user_agent)
         token = create_access_token(
             subject=str(user.id),

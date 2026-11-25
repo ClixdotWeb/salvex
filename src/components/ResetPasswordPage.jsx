@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { KeyRound, Lock, Mail, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import AuthShell, { Alert, Field } from './AuthShell';
 import { forgotPassword, resetPassword } from '../api/auth';
+import PasswordStrengthMeter from './PasswordStrengthMeter';
 
 const RESEND_WAIT_SECONDS = 60;
 
@@ -118,6 +119,7 @@ export default function ResetPasswordPage() {
               {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
+          <PasswordStrengthMeter password={password} email={email} id="reset-password-strength" />
         </Field>
 
         <Field id="reset-confirm" label="Confirm new password" error={fieldErrors.confirm}>

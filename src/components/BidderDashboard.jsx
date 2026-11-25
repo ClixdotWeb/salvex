@@ -121,7 +121,7 @@ export default function BidderDashboard() {
             <div className="tab-pane-content bd-overview">
               <div className="bd-hero-row">
                 <section className="bd-welcome">
-                  <span className="bd-eyebrow">Welcome back</span>
+                  <span className="bd-eyebrow">{user?.is_first_login ? 'Welcome' : 'Welcome back'}</span>
                   <h2>Hi, {firstName}</h2>
                   <div className="bd-welcome-meta">
                     {user?.buyer_id && <span className="bd-chip"><User size={13} /> Buyer ID: <strong>{user.buyer_id}</strong></span>}
@@ -286,7 +286,7 @@ function BidRow({ bid }) {
       </span>
       <span className="bd-bid-main">
         <strong>{bid.title}</strong>
-        <span><MapPin size={12} /> {bid.registration_masked} · your highest {money(bid.my_highest_bid)}</span>
+        <span><MapPin size={12} /> {bid.registration_number} · your highest {money(bid.my_highest_bid)}</span>
       </span>
       <span className={`bd-bid-status status-badge-chip ${status.cls}`}>{status.label}</span>
       <span className="bd-bid-price"><small>{bid.phase === 'ended' ? 'Final price' : 'Current bid'}</small><strong>{money(bid.current_price)}</strong></span>
